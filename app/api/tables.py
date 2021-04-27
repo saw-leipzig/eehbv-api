@@ -22,6 +22,5 @@ def get_tables():
 def get_infos():
     # s = select([ColumnInfo, Components])
     # infos = db.engine.execute(s).fetchall()
-    infos = ColumnInfo.query.join(Components).all()
-    print(infos[1].__dict__)
-    return ''  # json.dumps({'infos': infos})
+    infos = ColumnInfo.query.all()
+    return jsonify({'infos': [info.as_dict() for info in infos]})
