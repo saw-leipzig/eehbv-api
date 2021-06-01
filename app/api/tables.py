@@ -6,21 +6,18 @@ from . import api
 from app import db
 
 
-@api.route('/tables')
+@api.route('/component-types')
 def get_tables():
-    # s = select([Components])
-    # tables = db.engine.execute(s).fetchall()
-    s = select([Components, ColumnInfo])
-    print(s)
-    s = s.select_from(db.metadata.tables['components'].join(ColumnInfo))
-    tables = db.engine.execute(s).fetchall()
-    print(tables)
-    return ''  # jsonify(tables)
+    component_types = Components.query.all()
+    infos = ColumnInfo.query.all()
+    ctypes = {'componentTypes':
+                  [{**component_type.as_dict(),
+                    'infos': sorted([info.as_dict() for info in infos if info.component_id == component_type.id],
+                                    key=lambda x: x['position'])} for component_type in component_types]}
+    return jsonify(ctypes)
 
 
-@api.route('/infos')
+@api.route('/component-infos')
 def get_infos():
-    # s = select([ColumnInfo, Components])
-    # infos = db.engine.execute(s).fetchall()
     infos = ColumnInfo.query.all()
     return jsonify({'infos': [info.as_dict() for info in infos]})
