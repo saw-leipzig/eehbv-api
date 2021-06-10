@@ -16,8 +16,32 @@ class Components(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['components']
 
 
+class Processes(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['processes']
+
+
 class ProblemType(db.Model, Serializable):
-    __table__ = db.Model.metadata.tables['problem_type']
+    __table__ = db.Model.metadata.tables['process_solvers']
+
+
+class Variants(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variants']
+
+
+class VariantComponents(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variant_components']
+
+
+class VariantQuestions(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variant_questions']
+
+
+class VariantTreeQuestions(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['tree_questions']
+
+
+class VariantExcludes(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variant_excludes']
 
 
 components = {}
@@ -42,13 +66,13 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, name, model):
-        if name not in self.problems:
-            p = ProblemType.query.filter_by(api_name=name).first()
+    def call_solver(self, cId, model):
+        if cId not in self.problems:
+            p = ProblemType.query.filter_by(id=cId).first()
             if p is None:
                 raise Exception('Problem not defined')
-            self.problems[name] = import_code(p.code, name)
-        self.problems[name].call_solver(model)
+            self.problems[cId] = import_code(p.code, cId)
+        self.problems[cId].call_solver(model)
 
 
 create_models()
