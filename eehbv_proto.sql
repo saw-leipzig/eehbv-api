@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.0.4
+-- version 5.1.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 10. Jun 2021 um 02:27
--- Server-Version: 10.4.17-MariaDB
--- PHP-Version: 8.0.2
+-- Erstellungszeit: 16. Aug 2021 um 17:47
+-- Server-Version: 10.4.20-MariaDB
+-- PHP-Version: 8.0.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -178,6 +178,28 @@ CREATE TABLE `gearblobs` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `info_texts`
+--
+
+CREATE TABLE `info_texts` (
+  `id` int(11) NOT NULL,
+  `type` tinyint(4) NOT NULL,
+  `type_id` int(11) NOT NULL,
+  `position` tinyint(4) NOT NULL,
+  `text` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `info_texts`
+--
+
+INSERT INTO `info_texts` (`id`, `type`, `type_id`, `position`, `text`) VALUES
+(1, 1, 1, 3, 'Prozess-spezifischer Infotext für Angabe der Prozessparameter von Kantenanleimmaschinen...'),
+(2, 1, 1, 4, 'Prozess-spezifischer Infotext für Angabe der Nebenbedingungen von Kantenanleimmaschinen...');
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `motorlobs`
 --
 
@@ -206,6 +228,31 @@ CREATE TABLE `processes` (
 
 INSERT INTO `processes` (`id`, `view_name`, `api_name`, `variant_tree`) VALUES
 (1, 'Kantenanleimmaschine', 'edge_banding', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `process_parameters`
+--
+
+CREATE TABLE `process_parameters` (
+  `id` int(11) NOT NULL,
+  `processes_id` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `unit` varchar(15) NOT NULL,
+  `variable_name` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `process_parameters`
+--
+
+INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`) VALUES
+(1, 1, 'Werkstückdicke', 'mm', 'part_width'),
+(2, 1, 'Werkstücklänge', 'cm', 'part_length'),
+(3, 1, 'Fräßbreite', 'mm', 'milling_width'),
+(4, 1, 'Fräßtiefe', 'mm', 'milling_depth'),
+(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05');
 
 -- --------------------------------------------------------
 
@@ -544,6 +591,13 @@ ALTER TABLE `gearblobs`
   ADD PRIMARY KEY (`gear_id`);
 
 --
+-- Indizes für die Tabelle `info_texts`
+--
+ALTER TABLE `info_texts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `info_ref_id` (`type_id`);
+
+--
 -- Indizes für die Tabelle `motorlobs`
 --
 ALTER TABLE `motorlobs`
@@ -554,6 +608,13 @@ ALTER TABLE `motorlobs`
 --
 ALTER TABLE `processes`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indizes für die Tabelle `process_parameters`
+--
+ALTER TABLE `process_parameters`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `processes_parameters` (`processes_id`);
 
 --
 -- Indizes für die Tabelle `process_solvers`
@@ -644,10 +705,22 @@ ALTER TABLE `component_motor`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT für Tabelle `info_texts`
+--
+ALTER TABLE `info_texts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT für Tabelle `processes`
 --
 ALTER TABLE `processes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT für Tabelle `process_parameters`
+--
+ALTER TABLE `process_parameters`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT für Tabelle `tree_questions`
@@ -706,6 +779,12 @@ ALTER TABLE `gearblobs`
 --
 ALTER TABLE `motorlobs`
   ADD CONSTRAINT `motorblob` FOREIGN KEY (`motor_id`) REFERENCES `component_motor` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `process_parameters`
+--
+ALTER TABLE `process_parameters`
+  ADD CONSTRAINT `processes_parameters` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `process_solvers`

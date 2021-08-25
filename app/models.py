@@ -16,12 +16,21 @@ class Components(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['components']
 
 
+class ProcessParameters(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['process_parameters']
+
+
 class Processes(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['processes']
+    process_parameters = db.relationship('ProcessParameters', lazy=False)
 
 
 class ProblemType(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['process_solvers']
+
+
+class InfoTexts(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['info_texts']
 
 
 class Variants(db.Model, Serializable):
