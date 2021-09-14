@@ -75,13 +75,13 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, cId, model):
+    def call_solver(self, cId, process, model):
         if cId not in self.problems:
             p = ProblemType.query.filter_by(id=cId).first()
             if p is None:
                 raise Exception('Problem not defined')
-            self.problems[cId] = import_code(p.code, cId)
-        self.problems[cId].call_solver(model)
+            self.problems[cId] = import_code(p.code, process)
+        return self.problems[cId].call_solver(model)
 
 
 create_models()
