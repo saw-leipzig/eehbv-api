@@ -1,4 +1,5 @@
 import types
+import time
 from app import db
 from sqlalchemy import select
 
@@ -81,6 +82,7 @@ class ProblemWrapper:
             if p is None:
                 raise Exception('Problem not defined')
             self.problems[cId] = import_code(p.code, process)
+        time.sleep(16)  # for testing polling only
         return self.problems[cId].call_solver(model)
 
 

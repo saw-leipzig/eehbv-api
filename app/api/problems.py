@@ -8,17 +8,20 @@ from ..models import ProblemWrapper
 from . import api
 
 
+FINISHED = '/finished'
+FAILED = '/failed'
+
 problems = ProblemWrapper()
 
 
 @api.route('/problems/result/<timestamp>', methods=['GET'])
 def get_result(timestamp):
     path = current_app.config['DATA_PATH'] + '/' + timestamp
-    if not(os.path.exists(path + '/failed')) and not(os.path.exists(path + '/finished')):
+    if not(os.path.exists(path + FAILED)) and not(os.path.exists(path + FINISHED)):
         return Response("{'status': 'pending'}", 200, mimetype='application/json')
     with open(path + '/result.html', 'r') as f:
         result = f.read()
-    return Response(result, 200 if os.path.exists(path + '/finished') else 500, mimetype='text/plain')
+    return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='text/plain')
 
 
 @api.route('/problems/<int:cId>', methods=['POST'])
@@ -31,10 +34,10 @@ def handle_problem(cId):
     with open(path + '/problem.json', 'w') as f:
         json.dump(model, f)
     try:
-        solve(cId, model['process']['view_name'], model, path)
+        solve(cId, model['process']['api_name'], model, path)
     except:
         return Response('Wrong arguments', 400, mimetype='text/plain')
-    return Response(date_time, 202, mimetype='text/plain')
+    return Response(date_time, 202, mimetype='text/plain', headers={'Content-Location': '/problems/result/' + date_time})
 
 
 def solve(cId, process, model, path):
@@ -52,8 +55,8 @@ def threaded_solve(cApp, cId, process, model, path):
         res_str = '<div>{res}</div>'.format(res=result if (isinstance(result, str)) else json.dumps(result))
         with open(result_file, 'w') as f:
             f.write(res_str)
-        open(path + '/finished', 'a').close()
+        open(path + FINISHED, 'a').close()
     except BaseException as e:
         with open(result_file, 'w') as f:
             f.write(e.args[0] + '\n' + e.args[0])
-        open(path + '/failed', 'a').close()
+        open(path + FAILED, 'a').close()
