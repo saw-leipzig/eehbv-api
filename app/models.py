@@ -36,6 +36,7 @@ class InfoTexts(db.Model, Serializable):
 
 class Variants(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variants']
+    variant_components = db.relationship('VariantComponents', lazy=False)
 
 
 class VariantComponents(db.Model, Serializable):

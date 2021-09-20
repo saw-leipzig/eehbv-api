@@ -18,7 +18,7 @@ def new_component_type():
         i = ColumnInfo(component_id=c.id, column_name=column.column_name, view_name=column.view_name, type=column.type,
                        position=column.position, unit=column.unit)
         db.session.add(i)
-        # ToDo: create component table, update model classes
+        # ToDo: create/reflect component table, update model classes
     db.session.commit()
     json_comp = json.dumps(c.as_dict())
     return Response(json_comp, 201, mimetype='application/json')

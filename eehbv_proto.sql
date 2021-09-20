@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 16. Aug 2021 um 17:47
+-- Erstellungszeit: 20. Sep 2021 um 16:02
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -270,7 +270,7 @@ CREATE TABLE `process_solvers` (
 --
 
 INSERT INTO `process_solvers` (`id`, `code`) VALUES
-(1, 'def call_solver(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n');
+(1, 'def call_solver(model):\r\n    return internalsolve(model)\r\n\r\n\r\ndef internalsolve(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n    return model\r\n');
 
 -- --------------------------------------------------------
 
@@ -364,7 +364,8 @@ CREATE TABLE `variant_components` (
   `variants_id` int(11) NOT NULL,
   `position` tinyint(3) UNSIGNED NOT NULL,
   `component_api_name` varchar(40) NOT NULL,
-  `variable_name` varchar(30) NOT NULL
+  `variable_name` varchar(30) NOT NULL,
+  `description` varchar(40) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

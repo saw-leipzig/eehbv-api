@@ -13,7 +13,8 @@ def get_processes():
 @api.route('/processes/<int:cId>/variants')
 def get_variants(cId):
     variants = Variants.query.filter_by(processes_id=cId)
-    return jsonify({'variants': [variant.as_dict() for variant in variants]})
+    # return jsonify({'variants': [variant.as_dict() for variant in variants]})
+    return jsonify({'variants': [{**variant.as_dict(), 'components': [c.as_dict() for c in variant.variant_components]} for variant in variants]})
 
 
 @api.route('/processes/<int:cId>/info_texts')
