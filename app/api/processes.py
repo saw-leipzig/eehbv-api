@@ -6,14 +6,12 @@ from ..models import Processes, ProcessParameters, InfoTexts, Variants, VariantE
 @api.route('/processes')
 def get_processes():
     processes = Processes.query.all()
-    # return jsonify({'processes': [process.as_dict() for process in processes]})
     return jsonify({'processes': [{**process.as_dict(), 'parameters': [p.as_dict() for p in process.process_parameters]} for process in processes]})
 
 
 @api.route('/processes/<int:cId>/variants')
 def get_variants(cId):
     variants = Variants.query.filter_by(processes_id=cId)
-    # return jsonify({'variants': [variant.as_dict() for variant in variants]})
     return jsonify({'variants': [{**variant.as_dict(), 'components': [c.as_dict() for c in variant.variant_components]} for variant in variants]})
 
 
