@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 20. Sep 2021 um 16:02
+-- Erstellungszeit: 04. Okt 2021 um 22:23
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -155,7 +155,7 @@ CREATE TABLE `component_motor` (
 --
 
 INSERT INTO `component_motor` (`id`, `name`, `manufacturer`, `n_max`, `m_max`, `async`) VALUES
-(1, 'motor1', 'man1', 4000, 230, 0),
+(1, 'motor1', 'man1', 4000, 250, 0),
 (2, 'motor2', 'man1', 4200, 230, 0),
 (3, 'motor3', 'man1', 4200, 250, 0),
 (4, 'motor4', 'man2', 4200, 230, 0),
@@ -368,6 +368,15 @@ CREATE TABLE `variant_components` (
   `description` varchar(40) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Daten für Tabelle `variant_components`
+--
+
+INSERT INTO `variant_components` (`id`, `variants_id`, `position`, `component_api_name`, `variable_name`, `description`) VALUES
+(1, 15, 1, 'motors', 'v_milling_motor', 'Fräsermotor'),
+(2, 15, 2, 'motors', 'v_flush_motor', 'Bündigfräsermotor'),
+(5, 15, 3, 'gears', 'v_milling_gear', 'Fräsergetriebe');
+
 -- --------------------------------------------------------
 
 --
@@ -379,135 +388,136 @@ CREATE TABLE `variant_excludes` (
   `variants_id` int(11) NOT NULL,
   `response` tinyint(1) NOT NULL,
   `processes_id` int(11) NOT NULL,
-  `tree_questions_id` int(11) NOT NULL
+  `tree_questions_id` int(11) DEFAULT NULL,
+  `variant_questions_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Daten für Tabelle `variant_excludes`
 --
 
-INSERT INTO `variant_excludes` (`id`, `variants_id`, `response`, `processes_id`, `tree_questions_id`) VALUES
-(1, 1, 1, 1, 4),
-(3, 2, 1, 1, 4),
-(4, 3, 1, 1, 4),
-(5, 4, 1, 1, 4),
-(6, 5, 0, 1, 4),
-(7, 6, 0, 1, 4),
-(8, 7, 0, 1, 4),
-(9, 8, 0, 1, 4),
-(10, 9, 0, 1, 4),
-(11, 11, 0, 1, 4),
-(12, 12, 0, 1, 4),
-(13, 13, 0, 1, 4),
-(14, 14, 0, 1, 4),
-(15, 15, 0, 1, 4),
-(16, 16, 0, 1, 4),
-(17, 17, 0, 1, 4),
-(18, 18, 0, 1, 4),
-(19, 19, 0, 1, 4),
-(20, 20, 0, 1, 4),
-(21, 21, 0, 1, 4),
-(22, 22, 0, 1, 4),
-(23, 23, 0, 1, 4),
-(24, 1, 1, 1, 6),
-(25, 2, 1, 1, 6),
-(26, 3, 0, 1, 6),
-(27, 4, 0, 1, 6),
-(28, 3, 1, 1, 8),
-(29, 4, 0, 1, 8),
-(30, 2, 1, 1, 9),
-(31, 1, 0, 1, 9),
-(32, 5, 0, 1, 5),
-(33, 6, 0, 1, 5),
-(34, 7, 1, 1, 5),
-(35, 8, 1, 1, 5),
-(36, 9, 1, 1, 5),
-(37, 11, 1, 1, 5),
-(38, 12, 1, 1, 5),
-(39, 13, 1, 1, 5),
-(40, 14, 1, 1, 5),
-(41, 15, 1, 1, 5),
-(42, 16, 1, 1, 5),
-(43, 17, 1, 1, 5),
-(44, 18, 1, 1, 5),
-(45, 19, 1, 1, 5),
-(46, 20, 1, 1, 5),
-(47, 21, 1, 1, 5),
-(48, 22, 1, 1, 5),
-(49, 23, 1, 1, 5),
-(50, 5, 1, 1, 7),
-(51, 6, 0, 1, 7),
-(52, 18, 0, 1, 10),
-(53, 19, 0, 1, 10),
-(54, 20, 0, 1, 10),
-(55, 21, 0, 1, 10),
-(56, 22, 0, 1, 10),
-(57, 23, 0, 1, 10),
-(58, 7, 1, 1, 10),
-(59, 8, 1, 1, 10),
-(60, 9, 1, 1, 10),
-(61, 11, 1, 1, 10),
-(62, 12, 1, 1, 10),
-(63, 13, 1, 1, 10),
-(64, 14, 1, 1, 10),
-(65, 15, 1, 1, 10),
-(66, 16, 1, 1, 10),
-(67, 17, 1, 1, 10),
-(68, 18, 1, 1, 11),
-(69, 19, 1, 1, 11),
-(70, 20, 1, 1, 11),
-(71, 21, 0, 1, 11),
-(72, 22, 0, 1, 11),
-(73, 23, 0, 1, 11),
-(74, 21, 1, 1, 12),
-(75, 22, 1, 1, 12),
-(76, 23, 0, 1, 12),
-(77, 21, 1, 1, 13),
-(78, 22, 0, 1, 13),
-(79, 18, 1, 1, 14),
-(80, 19, 1, 1, 14),
-(81, 20, 0, 1, 14),
-(82, 18, 1, 1, 15),
-(83, 19, 0, 1, 15),
-(84, 7, 1, 1, 16),
-(85, 8, 1, 1, 16),
-(86, 9, 1, 1, 16),
-(87, 11, 1, 1, 16),
-(88, 12, 1, 1, 16),
-(89, 13, 1, 1, 16),
-(90, 14, 1, 1, 16),
-(91, 15, 0, 1, 16),
-(92, 16, 0, 1, 16),
-(93, 17, 0, 1, 16),
-(94, 15, 1, 1, 17),
-(95, 16, 1, 1, 17),
-(96, 17, 0, 1, 17),
-(97, 15, 1, 1, 18),
-(98, 16, 0, 1, 18),
-(99, 7, 1, 1, 19),
-(100, 8, 1, 1, 19),
-(101, 9, 0, 1, 19),
-(102, 11, 0, 1, 19),
-(103, 12, 0, 1, 10),
-(104, 13, 0, 1, 19),
-(105, 14, 0, 1, 19),
-(106, 7, 1, 1, 20),
-(107, 8, 0, 1, 20),
-(108, 9, 1, 1, 21),
-(109, 11, 1, 1, 21),
-(110, 12, 0, 1, 21),
-(111, 13, 0, 1, 21),
-(112, 14, 0, 1, 21),
-(113, 15, 0, 1, 21),
-(114, 16, 0, 1, 21),
-(115, 17, 0, 1, 21),
-(116, 9, 1, 1, 24),
-(117, 11, 0, 1, 24),
-(118, 12, 1, 1, 22),
-(119, 14, 1, 1, 22),
-(120, 13, 0, 1, 21),
-(121, 12, 1, 1, 23),
-(122, 14, 0, 1, 23);
+INSERT INTO `variant_excludes` (`id`, `variants_id`, `response`, `processes_id`, `tree_questions_id`, `variant_questions_id`) VALUES
+(1, 1, 1, 1, 4, NULL),
+(3, 2, 1, 1, 4, NULL),
+(4, 3, 1, 1, 4, NULL),
+(5, 4, 1, 1, 4, NULL),
+(6, 5, 0, 1, 4, NULL),
+(7, 6, 0, 1, 4, NULL),
+(8, 7, 0, 1, 4, NULL),
+(9, 8, 0, 1, 4, NULL),
+(10, 9, 0, 1, 4, NULL),
+(11, 11, 0, 1, 4, NULL),
+(12, 12, 0, 1, 4, NULL),
+(13, 13, 0, 1, 4, NULL),
+(14, 14, 0, 1, 4, NULL),
+(15, 15, 0, 1, 4, NULL),
+(16, 16, 0, 1, 4, NULL),
+(17, 17, 0, 1, 4, NULL),
+(18, 18, 0, 1, 4, NULL),
+(19, 19, 0, 1, 4, NULL),
+(20, 20, 0, 1, 4, NULL),
+(21, 21, 0, 1, 4, NULL),
+(22, 22, 0, 1, 4, NULL),
+(23, 23, 0, 1, 4, NULL),
+(24, 1, 1, 1, 6, NULL),
+(25, 2, 1, 1, 6, NULL),
+(26, 3, 0, 1, 6, NULL),
+(27, 4, 0, 1, 6, NULL),
+(28, 3, 1, 1, 8, NULL),
+(29, 4, 0, 1, 8, NULL),
+(30, 2, 1, 1, 9, NULL),
+(31, 1, 0, 1, 9, NULL),
+(32, 5, 0, 1, 5, NULL),
+(33, 6, 0, 1, 5, NULL),
+(34, 7, 1, 1, 5, NULL),
+(35, 8, 1, 1, 5, NULL),
+(36, 9, 1, 1, 5, NULL),
+(37, 11, 1, 1, 5, NULL),
+(38, 12, 1, 1, 5, NULL),
+(39, 13, 1, 1, 5, NULL),
+(40, 14, 1, 1, 5, NULL),
+(41, 15, 1, 1, 5, NULL),
+(42, 16, 1, 1, 5, NULL),
+(43, 17, 1, 1, 5, NULL),
+(44, 18, 1, 1, 5, NULL),
+(45, 19, 1, 1, 5, NULL),
+(46, 20, 1, 1, 5, NULL),
+(47, 21, 1, 1, 5, NULL),
+(48, 22, 1, 1, 5, NULL),
+(49, 23, 1, 1, 5, NULL),
+(50, 5, 1, 1, 7, NULL),
+(51, 6, 0, 1, 7, NULL),
+(52, 18, 0, 1, 10, NULL),
+(53, 19, 0, 1, 10, NULL),
+(54, 20, 0, 1, 10, NULL),
+(55, 21, 0, 1, 10, NULL),
+(56, 22, 0, 1, 10, NULL),
+(57, 23, 0, 1, 10, NULL),
+(58, 7, 1, 1, 10, NULL),
+(59, 8, 1, 1, 10, NULL),
+(60, 9, 1, 1, 10, NULL),
+(61, 11, 1, 1, 10, NULL),
+(62, 12, 1, 1, 10, NULL),
+(63, 13, 1, 1, 10, NULL),
+(64, 14, 1, 1, 10, NULL),
+(65, 15, 1, 1, 10, NULL),
+(66, 16, 1, 1, 10, NULL),
+(67, 17, 1, 1, 10, NULL),
+(68, 18, 1, 1, 11, NULL),
+(69, 19, 1, 1, 11, NULL),
+(70, 20, 1, 1, 11, NULL),
+(71, 21, 0, 1, 11, NULL),
+(72, 22, 0, 1, 11, NULL),
+(73, 23, 0, 1, 11, NULL),
+(74, 21, 1, 1, 12, NULL),
+(75, 22, 1, 1, 12, NULL),
+(76, 23, 0, 1, 12, NULL),
+(77, 21, 1, 1, 13, NULL),
+(78, 22, 0, 1, 13, NULL),
+(79, 18, 1, 1, 14, NULL),
+(80, 19, 1, 1, 14, NULL),
+(81, 20, 0, 1, 14, NULL),
+(82, 18, 1, 1, 15, NULL),
+(83, 19, 0, 1, 15, NULL),
+(84, 7, 1, 1, 16, NULL),
+(85, 8, 1, 1, 16, NULL),
+(86, 9, 1, 1, 16, NULL),
+(87, 11, 1, 1, 16, NULL),
+(88, 12, 1, 1, 16, NULL),
+(89, 13, 1, 1, 16, NULL),
+(90, 14, 1, 1, 16, NULL),
+(91, 15, 0, 1, 16, NULL),
+(92, 16, 0, 1, 16, NULL),
+(93, 17, 0, 1, 16, NULL),
+(94, 15, 1, 1, 17, NULL),
+(95, 16, 1, 1, 17, NULL),
+(96, 17, 0, 1, 17, NULL),
+(97, 15, 1, 1, 18, NULL),
+(98, 16, 0, 1, 18, NULL),
+(99, 7, 1, 1, 19, NULL),
+(100, 8, 1, 1, 19, NULL),
+(101, 9, 0, 1, 19, NULL),
+(102, 11, 0, 1, 19, NULL),
+(103, 12, 0, 1, 10, NULL),
+(104, 13, 0, 1, 19, NULL),
+(105, 14, 0, 1, 19, NULL),
+(106, 7, 1, 1, 20, NULL),
+(107, 8, 0, 1, 20, NULL),
+(108, 9, 1, 1, 21, NULL),
+(109, 11, 1, 1, 21, NULL),
+(110, 12, 0, 1, 21, NULL),
+(111, 13, 0, 1, 21, NULL),
+(112, 14, 0, 1, 21, NULL),
+(113, 15, 0, 1, 21, NULL),
+(114, 16, 0, 1, 21, NULL),
+(115, 17, 0, 1, 21, NULL),
+(116, 9, 1, 1, 24, NULL),
+(117, 11, 0, 1, 24, NULL),
+(118, 12, 1, 1, 22, NULL),
+(119, 14, 1, 1, 22, NULL),
+(120, 13, 0, 1, 21, NULL),
+(121, 12, 1, 1, 23, NULL),
+(122, 14, 0, 1, 23, NULL);
 
 -- --------------------------------------------------------
 
@@ -536,6 +546,25 @@ INSERT INTO `variant_questions` (`id`, `processes_id`, `question`) VALUES
 (8, 1, 'Eckschwabbeln?'),
 (9, 1, 'Universalfräsen?'),
 (10, 1, 'Schwabbeln?');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `variant_selection`
+--
+
+CREATE TABLE `variant_selection` (
+  `id` int(11) NOT NULL,
+  `processes_id` int(11) NOT NULL,
+  `selection` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`selection`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `variant_selection`
+--
+
+INSERT INTO `variant_selection` (`id`, `processes_id`, `selection`) VALUES
+(1, 1, '{\"list\": [], \"tree\": {\"no\": {\"excludes\": [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], \"no\": {\"excludes\": [3, 4], \"no\": {\"excludes\": [1], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Leimfugenziehen?\", \"yes\": {\"excludes\": [2], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Eckenkopieren?\", \"yes\": {\"excludes\": [1, 2], \"no\": {\"excludes\": [4], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Leimfugenziehen?\", \"yes\": {\"excludes\": [3], \"no\": null, \"question\": null, \"yes\": null}}}, \"question\": \"F\\u00fcgefr\\u00e4sen?\", \"yes\": {\"excludes\": [1, 2, 3, 4], \"no\": {\"excludes\": [5, 6], \"no\": {\"excludes\": [18, 19, 20, 21, 22, 23, 12], \"no\": {\"excludes\": [15, 16, 17], \"no\": {\"excludes\": [9, 11, 13, 14], \"no\": {\"excludes\": [8], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Leimfugenziehen?\", \"yes\": {\"excludes\": [7], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Eckenkopieren?\", \"yes\": {\"excludes\": [7, 8], \"no\": {\"excludes\": [12, 13, 14, 15, 16, 17, 13], \"no\": {\"excludes\": [11], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Schwabbeln?\", \"yes\": {\"excludes\": [9], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Leimfugenziehen?\", \"yes\": {\"excludes\": [9, 11], \"no\": {\"excludes\": [], \"no\": {\"excludes\": [14], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Nutfr\\u00e4sen?\", \"yes\": {\"excludes\": [12], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Eckschwabbeln?\", \"yes\": {\"excludes\": [12, 14], \"no\": null, \"question\": null, \"yes\": null}}}}, \"question\": \"B\\u00fcndigfr\\u00e4sen?\", \"yes\": {\"excludes\": [7, 8, 9, 11, 12, 13, 14], \"no\": {\"excludes\": [17], \"no\": {\"excludes\": [16], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Universalfr\\u00e4sen?\", \"yes\": {\"excludes\": [15], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Eckschwabbeln?\", \"yes\": {\"excludes\": [15, 16], \"no\": null, \"question\": null, \"yes\": null}}}, \"question\": \"Laser?\", \"yes\": {\"excludes\": [7, 8, 9, 11, 12, 13, 14, 15, 16, 17], \"no\": {\"excludes\": [21, 22, 23], \"no\": {\"excludes\": [20], \"no\": {\"excludes\": [19], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Nutfr\\u00e4sen?\", \"yes\": {\"excludes\": [18], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Eckschwabbeln?\", \"yes\": {\"excludes\": [18, 19], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"B\\u00fcndigfr\\u00e4sen?\", \"yes\": {\"excludes\": [18, 19, 20], \"no\": {\"excludes\": [23], \"no\": {\"excludes\": [22], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Universalfr\\u00e4sen?\", \"yes\": {\"excludes\": [21], \"no\": null, \"question\": null, \"yes\": null}}, \"question\": \"Nutfr\\u00e4sen?\", \"yes\": {\"excludes\": [21, 22], \"no\": null, \"question\": null, \"yes\": null}}}}, \"question\": \"Hei\\u00dfluft?\", \"yes\": {\"excludes\": [7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], \"no\": {\"excludes\": [6], \"no\": null, \"question\": null, \"yes\": null}, \"question\": \"Leimfugenziehen?\", \"yes\": {\"excludes\": [5], \"no\": null, \"question\": null, \"yes\": null}}}}}');
 
 --
 -- Indizes der exportierten Tabellen
@@ -660,6 +689,12 @@ ALTER TABLE `variant_questions`
   ADD KEY `variant_question_processes` (`processes_id`);
 
 --
+-- Indizes für die Tabelle `variant_selection`
+--
+ALTER TABLE `variant_selection`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT für exportierte Tabellen
 --
 
@@ -739,7 +774,7 @@ ALTER TABLE `variants`
 -- AUTO_INCREMENT für Tabelle `variant_components`
 --
 ALTER TABLE `variant_components`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT für Tabelle `variant_excludes`
@@ -752,6 +787,12 @@ ALTER TABLE `variant_excludes`
 --
 ALTER TABLE `variant_questions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT für Tabelle `variant_selection`
+--
+ALTER TABLE `variant_selection`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints der exportierten Tabellen

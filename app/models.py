@@ -55,6 +55,10 @@ class VariantExcludes(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variant_excludes']
 
 
+class VariantSelection(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variant_selection']
+
+
 components = {}
 tables = {}
 

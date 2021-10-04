@@ -1,6 +1,8 @@
-from flask import jsonify
+import json
+from flask import jsonify, request, Response
 from . import api
-from ..models import Processes, ProcessParameters, InfoTexts, Variants, VariantExcludes, VariantQuestions, VariantTreeQuestions
+from ..models import Processes, ProcessParameters, InfoTexts, Variants, VariantExcludes, VariantQuestions, VariantTreeQuestions, VariantSelection
+from app import db
 
 
 @api.route('/processes')
@@ -19,6 +21,28 @@ def get_variants(cId):
 def get_info_texts(cId):
     texts = InfoTexts.query.filter_by(type=1).filter_by(type_id=cId)
     return jsonify({'info_texts': [text.as_dict() for text in texts]})
+
+
+@api.route('/processes/<int:cId>/selection', methods=['POST'])
+def create_selection(cId):
+    sel = request.get_json()
+    selection = VariantSelection.query.filter_by(processes_id=cId).first()
+    if selection is not None:
+        selection.selection = json.dumps(sel)
+        db.session.commit()
+        return Response(sel, 204, mimetype='application/json')
+    else:
+        s = VariantSelection(processes_id=cId, selection=json.dumps(sel))
+        db.session.add(s)
+        db.session.commit()
+        return Response(sel, 201, mimetype='application/json')
+
+
+@api.route('/processes/<int:cId>/selection', methods=['GET'])
+def get_selection(cId):
+    selection = VariantSelection.query.filter_by(processes_id=cId).first()
+    # ToDo: error for id not found
+    return Response(selection.selection, 200, mimetype='application/json')
 
 
 @api.route('/processes/<int:cId>/questions')
