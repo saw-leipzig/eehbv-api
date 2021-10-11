@@ -59,6 +59,14 @@ class VariantSelection(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variant_selection']
 
 
+class MaterialProperties(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['material_properties']
+
+
+class PropertyValues(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['property_values']
+
+
 components = {}
 tables = {}
 
