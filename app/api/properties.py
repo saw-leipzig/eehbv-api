@@ -42,7 +42,8 @@ def del_property(cId):
 @api.route('/properties/values')
 def get_prop_values():
     values = PropertyValues.query.all()
-    return jsonify({'constants': [value.as_dict() for value in values]})
+    json_values = json.dumps({'values': [value.as_dict() for value in values]}, cls=DecimalEncoder)
+    return Response(json_values, mimetype='application/json')
 
 
 @api.route('/properties/values', methods=['POST'])

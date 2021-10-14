@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 04. Okt 2021 um 22:23
+-- Erstellungszeit: 15. Okt 2021 um 00:54
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -159,7 +159,7 @@ INSERT INTO `component_motor` (`id`, `name`, `manufacturer`, `n_max`, `m_max`, `
 (2, 'motor2', 'man1', 4200, 230, 0),
 (3, 'motor3', 'man1', 4200, 250, 0),
 (4, 'motor4', 'man2', 4200, 230, 0),
-(5, 'motor5', 'man2', 4200, 230, 0),
+(5, 'motor5', 'man3', 4200, 230, 0),
 (6, 'motor6', 'man2', 4500, 230, 0),
 (8, 'motorX', 'man2', 4200, 230, 0);
 
@@ -196,6 +196,27 @@ CREATE TABLE `info_texts` (
 INSERT INTO `info_texts` (`id`, `type`, `type_id`, `position`, `text`) VALUES
 (1, 1, 1, 3, 'Prozess-spezifischer Infotext für Angabe der Prozessparameter von Kantenanleimmaschinen...'),
 (2, 1, 1, 4, 'Prozess-spezifischer Infotext für Angabe der Nebenbedingungen von Kantenanleimmaschinen...');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `material_properties`
+--
+
+CREATE TABLE `material_properties` (
+  `id` int(11) NOT NULL,
+  `property` varchar(40) NOT NULL,
+  `unit` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `material_properties`
+--
+
+INSERT INTO `material_properties` (`id`, `property`, `unit`) VALUES
+(1, 'Dichte', 'g/cm^3'),
+(2, 'Schnittkraftkonstante k_c0,5', 'N/mm^1,5'),
+(7, 'Brinellhärte', 'N/mm^2');
 
 -- --------------------------------------------------------
 
@@ -240,19 +261,20 @@ CREATE TABLE `process_parameters` (
   `processes_id` int(11) NOT NULL,
   `name` varchar(30) NOT NULL,
   `unit` varchar(15) NOT NULL,
-  `variable_name` varchar(20) NOT NULL
+  `variable_name` varchar(20) NOT NULL,
+  `material_properties_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Daten für Tabelle `process_parameters`
 --
 
-INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`) VALUES
-(1, 1, 'Werkstückdicke', 'mm', 'part_width'),
-(2, 1, 'Werkstücklänge', 'cm', 'part_length'),
-(3, 1, 'Fräßbreite', 'mm', 'milling_width'),
-(4, 1, 'Fräßtiefe', 'mm', 'milling_depth'),
-(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05');
+INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`, `material_properties_id`) VALUES
+(1, 1, 'Werkstückdicke', 'mm', 'part_width', NULL),
+(2, 1, 'Werkstücklänge', 'cm', 'part_length', NULL),
+(3, 1, 'Fräsbreite', 'mm', 'milling_width', NULL),
+(4, 1, 'Frästiefe', 'mm', 'milling_depth', NULL),
+(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05', 2);
 
 -- --------------------------------------------------------
 
@@ -271,6 +293,33 @@ CREATE TABLE `process_solvers` (
 
 INSERT INTO `process_solvers` (`id`, `code`) VALUES
 (1, 'def call_solver(model):\r\n    return internalsolve(model)\r\n\r\n\r\ndef internalsolve(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n    return model\r\n');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `property_values`
+--
+
+CREATE TABLE `property_values` (
+  `id` int(11) NOT NULL,
+  `material_properties_id` int(11) NOT NULL,
+  `value` double NOT NULL,
+  `material` varchar(40) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `property_values`
+--
+
+INSERT INTO `property_values` (`id`, `material_properties_id`, `value`, `material`) VALUES
+(1, 2, 22.5, 'MDF'),
+(2, 2, 15, 'Spanplatte'),
+(3, 2, 33, 'Buche'),
+(4, 2, 33, 'Eiche'),
+(5, 1, 0.68, 'Buche'),
+(6, 1, 0.65, 'Eiche'),
+(8, 7, 34, 'Buche'),
+(11, 7, 34, 'Eiche');
 
 -- --------------------------------------------------------
 
@@ -628,6 +677,12 @@ ALTER TABLE `info_texts`
   ADD KEY `info_ref_id` (`type_id`);
 
 --
+-- Indizes für die Tabelle `material_properties`
+--
+ALTER TABLE `material_properties`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indizes für die Tabelle `motorlobs`
 --
 ALTER TABLE `motorlobs`
@@ -644,13 +699,21 @@ ALTER TABLE `processes`
 --
 ALTER TABLE `process_parameters`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `processes_parameters` (`processes_id`);
+  ADD KEY `processes_parameters` (`processes_id`),
+  ADD KEY `process_parameters_properties` (`material_properties_id`);
 
 --
 -- Indizes für die Tabelle `process_solvers`
 --
 ALTER TABLE `process_solvers`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indizes für die Tabelle `property_values`
+--
+ALTER TABLE `property_values`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `properties_values` (`material_properties_id`);
 
 --
 -- Indizes für die Tabelle `tree_questions`
@@ -747,6 +810,12 @@ ALTER TABLE `info_texts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT für Tabelle `material_properties`
+--
+ALTER TABLE `material_properties`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
 -- AUTO_INCREMENT für Tabelle `processes`
 --
 ALTER TABLE `processes`
@@ -757,6 +826,12 @@ ALTER TABLE `processes`
 --
 ALTER TABLE `process_parameters`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT für Tabelle `property_values`
+--
+ALTER TABLE `property_values`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT für Tabelle `tree_questions`
@@ -826,6 +901,7 @@ ALTER TABLE `motorlobs`
 -- Constraints der Tabelle `process_parameters`
 --
 ALTER TABLE `process_parameters`
+  ADD CONSTRAINT `process_parameters_properties` FOREIGN KEY (`material_properties_id`) REFERENCES `material_properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `processes_parameters` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -833,6 +909,12 @@ ALTER TABLE `process_parameters`
 --
 ALTER TABLE `process_solvers`
   ADD CONSTRAINT `processes_processsolvers` FOREIGN KEY (`id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `property_values`
+--
+ALTER TABLE `property_values`
+  ADD CONSTRAINT `properties_values` FOREIGN KEY (`material_properties_id`) REFERENCES `material_properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `tree_questions`
