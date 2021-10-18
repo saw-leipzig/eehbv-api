@@ -1,7 +1,8 @@
 import types
 import time
 from app import db
-from sqlalchemy import select
+from sqlalchemy import select, BOOLEAN, INTEGER, FLOAT, VARCHAR, Column, Table
+from sqlalchemy.schema import CreateTable
 
 
 class Serializable:
@@ -76,7 +77,24 @@ def create_models():
     cs = db.engine.execute(s).fetchall()
     for comp in cs:
         tables[comp.api_name] = db.Model.metadata.tables[comp.table_name]
-        components[comp.api_name] = type(comp.api_name, (db.Model, Serializable,), {"__table__": db.Model.metadata.tables[comp.table_name]})
+        components[comp.api_name] = type(comp.api_name, (db.Model, Serializable,),
+                                         {"__table__": db.Model.metadata.tables[comp.table_name]})
+
+
+def create_new_component_table(table_name, api_name, columns):
+    columns = [Column('id', INTEGER, primary_key=True),
+               *[Column(column["column_name"],
+                        VARCHAR(40) if column["type"] == 'VARCHAR' else FLOAT if column["type"] == 'DOUBLE' else BOOLEAN)
+                 for column in columns]]
+    table = Table(table_name, db.metadata, *columns)
+    table_creation_sql = CreateTable(table)
+    print(table_creation_sql)
+    db.engine.execute(table_creation_sql)
+    print(db.metadata.tables)
+    tables[api_name] = db.Model.metadata.tables[table_name]
+    components[api_name] = type(api_name, (db.Model, Serializable,),
+                                {"__table__": db.Model.metadata.tables[table_name]})
+    print(components[api_name])
 
 
 def import_code(code, name):

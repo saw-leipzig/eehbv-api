@@ -18,7 +18,7 @@ problems = ProblemWrapper()
 def get_result(timestamp):
     path = current_app.config['DATA_PATH'] + '/' + timestamp
     if not(os.path.exists(path + FAILED)) and not(os.path.exists(path + FINISHED)):
-        return Response("{'status': 'pending'}", 200, mimetype='application/json')
+        return Response('{"status": "pending"}', 200, mimetype='application/json')
     with open(path + '/result.html', 'r') as f:
         result = f.read()
     return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='text/plain')
