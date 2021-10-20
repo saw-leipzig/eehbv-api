@@ -20,13 +20,12 @@ def new_component_type():
             column_dict["component_id"] = c.id
             i = ColumnInfo(**column_dict)
             db.session.add(i)
-            # ToDo: create/reflect component table, update model classes
         db.session.commit()
         create_new_component_table(comp_type["table_name"], comp_type["api_name"], comp_type["columns"])
     except BaseException as e:
         return return_error(e)
-    json_comp = json.dumps(comp_type)
-    return Response(json_comp, 201, mimetype='application/json')
+    json_type = get_table(c.id)
+    return Response(json_type, 201, mimetype='application/json')
 
 
 def return_error(ex):
@@ -42,6 +41,16 @@ def get_tables():
                     'infos': sorted([info.as_dict() for info in infos if info.component_id == component_type.id],
                                     key=lambda x: x['position'])} for component_type in component_types]}
     return jsonify(ctypes)
+
+
+@api.route('/component-types/<int:cId>')
+def get_table(cId):
+    component_type = Components.query.filter_by(id=cId).first()
+    infos = ColumnInfo.query.filter_by(component_id=cId)
+    c_type = {**component_type.as_dict(),
+              'infos': sorted([info.as_dict() for info in infos],
+                              key=lambda x: x['position'])}
+    return jsonify(c_type)
 
 
 @api.route('/component-infos')
