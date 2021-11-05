@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 15. Okt 2021 um 00:54
+-- Erstellungszeit: 05. Nov 2021 um 15:13
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -133,7 +133,8 @@ INSERT INTO `component_gear` (`id`, `name`, `manufacturer`, `gear_ratio`) VALUES
 (1, 'Gear AX', 'Gearontologists', 200),
 (2, 'Gear 2000', 'Gearontologists', 2000),
 (4, 'Gear++', 'Gearontologists', 22),
-(5, 'GearX', 'Man2', 430);
+(5, 'GearX', 'Man2', 430),
+(6, 'Gear 2001', 'Gearontologists', 1001);
 
 -- --------------------------------------------------------
 
@@ -284,6 +285,7 @@ INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variabl
 
 CREATE TABLE `process_solvers` (
   `id` int(11) NOT NULL,
+  `processes_id` int(11) NOT NULL,
   `code` mediumtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -291,8 +293,8 @@ CREATE TABLE `process_solvers` (
 -- Daten für Tabelle `process_solvers`
 --
 
-INSERT INTO `process_solvers` (`id`, `code`) VALUES
-(1, 'def call_solver(model):\r\n    return internalsolve(model)\r\n\r\n\r\ndef internalsolve(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n    return model\r\n');
+INSERT INTO `process_solvers` (`id`, `processes_id`, `code`) VALUES
+(1, 1, 'def call_solver(model):\r\n    return internalsolve(model)\r\n\r\n\r\ndef internalsolve(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n    return model\r\n');
 
 -- --------------------------------------------------------
 
@@ -320,6 +322,26 @@ INSERT INTO `property_values` (`id`, `material_properties_id`, `value`, `materia
 (6, 1, 0.65, 'Eiche'),
 (8, 7, 34, 'Buche'),
 (11, 7, 34, 'Eiche');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL,
+  `role` varchar(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `roles`
+--
+
+INSERT INTO `roles` (`id`, `role`) VALUES
+(1, 'data'),
+(2, 'opt'),
+(3, 'admin');
 
 -- --------------------------------------------------------
 
@@ -360,6 +382,27 @@ INSERT INTO `tree_questions` (`id`, `parent_id`, `parent_response`, `variant_que
 (22, 21, 1, 8),
 (23, 22, 0, 7),
 (24, 21, 0, 10);
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(20) NOT NULL,
+  `password_hash` varchar(100) NOT NULL,
+  `role` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password_hash`, `role`) VALUES
+(1, 'admin', 'pbkdf2:sha256:150000$MIy5TNLq$8870e7422e12a521007f1a35dd67ba02436862e4bc058ed72e2b9fbad1ae19d2', 3),
+(2, 'user', 'pbkdf2:sha256:150000$tcDN0hyg$d35c532d6a6f0109d88245759e36532dc8813faf994a9d17fbad336a863f0309', 2);
 
 -- --------------------------------------------------------
 
@@ -706,7 +749,8 @@ ALTER TABLE `process_parameters`
 -- Indizes für die Tabelle `process_solvers`
 --
 ALTER TABLE `process_solvers`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `processes_processsolvers` (`processes_id`);
 
 --
 -- Indizes für die Tabelle `property_values`
@@ -716,11 +760,24 @@ ALTER TABLE `property_values`
   ADD KEY `properties_values` (`material_properties_id`);
 
 --
+-- Indizes für die Tabelle `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indizes für die Tabelle `tree_questions`
 --
 ALTER TABLE `tree_questions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `tree_variant_questions` (`variant_questions_id`);
+
+--
+-- Indizes für die Tabelle `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `users_role` (`role`);
 
 --
 -- Indizes für die Tabelle `variants`
@@ -783,19 +840,19 @@ ALTER TABLE `aggregate_variables`
 -- AUTO_INCREMENT für Tabelle `column_info`
 --
 ALTER TABLE `column_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT für Tabelle `components`
 --
 ALTER TABLE `components`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT für Tabelle `component_gear`
 --
 ALTER TABLE `component_gear`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT für Tabelle `component_motor`
@@ -831,13 +888,25 @@ ALTER TABLE `process_parameters`
 -- AUTO_INCREMENT für Tabelle `property_values`
 --
 ALTER TABLE `property_values`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT für Tabelle `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT für Tabelle `tree_questions`
 --
 ALTER TABLE `tree_questions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT für Tabelle `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT für Tabelle `variants`
@@ -908,7 +977,7 @@ ALTER TABLE `process_parameters`
 -- Constraints der Tabelle `process_solvers`
 --
 ALTER TABLE `process_solvers`
-  ADD CONSTRAINT `processes_processsolvers` FOREIGN KEY (`id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `processes_processsolvers` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `property_values`
@@ -921,6 +990,12 @@ ALTER TABLE `property_values`
 --
 ALTER TABLE `tree_questions`
   ADD CONSTRAINT `tree_variant_questions` FOREIGN KEY (`variant_questions_id`) REFERENCES `variant_questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_role` FOREIGN KEY (`role`) REFERENCES `roles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `variants`

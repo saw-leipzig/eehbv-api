@@ -1,8 +1,11 @@
 import types
 import time
 from app import db
+from flask import current_app
 from sqlalchemy import select, BOOLEAN, INTEGER, FLOAT, VARCHAR, Column, Table
 from sqlalchemy.schema import CreateTable
+from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
 class Serializable:
@@ -68,6 +71,63 @@ class PropertyValues(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['property_values']
 
 
+class Roles(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['roles']
+
+
+class Users(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['users']
+
+    @property
+    def password(self):
+        raise AttributeError('Password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def generate_auth_token(self, expiration=7200):
+        s = Serializer(current_app.config['SECRET_KEY'],
+                       expires_in=expiration)
+        return s.dumps({'id': self.id, 'role': self.role}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return Users.query.get(data['id'])
+
+    @staticmethod
+    def is_admin(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+            return data['role'] == Permission.ADMIN
+        except:
+            return False
+
+    @staticmethod
+    def is_self_or_admin(token, cId):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+            return data['role'] == Permission.ADMIN or data['id'] == cId
+        except:
+            return False
+
+
+class Permission:
+    DATA = 1
+    OPT = 2
+    ADMIN = 3
+
+
 components = {}
 tables = {}
 
@@ -109,7 +169,7 @@ class ProblemWrapper:
 
     def call_solver(self, cId, process, model):
         if cId not in self.problems:
-            p = ProblemType.query.filter_by(id=cId).first()
+            p = ProblemType.query.filter_by(processes_id=cId).first()
             if p is None:
                 raise Exception('Problem not defined')
             self.problems[cId] = import_code(p.code, process)
