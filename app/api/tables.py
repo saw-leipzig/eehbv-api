@@ -1,12 +1,14 @@
 import json
 from flask import jsonify, request, Response, g, url_for, current_app
 from sqlalchemy import select
-from ..models import ColumnInfo, Components, create_new_component_table
+from ..models import ColumnInfo, Components, create_new_component_table, Permission
 from . import api
 from app import db
+from ..decorators import permission_required
 
 
 @api.route('/components', methods=['POST'])
+@permission_required(Permission.OPT)
 def new_component_type():
     comp_type = request.get_json()
     try:

@@ -2,8 +2,9 @@ import json
 from flask import jsonify, request, Response
 from . import api
 from ..models import Processes, ProcessParameters, InfoTexts, Variants, VariantExcludes, VariantQuestions,\
-    VariantTreeQuestions, VariantSelection, ProblemType
+    VariantTreeQuestions, VariantSelection, ProblemType, Permission
 from app import db
+from ..decorators import permission_required
 
 
 @api.route('/processes')
@@ -19,6 +20,7 @@ def get_process(cId):
 
 
 @api.route('/processes', methods=['POST'])
+@permission_required(Permission.OPT)
 def create_process():
     proc = request.get_json()
     proc_dict = {key: proc[key] for key in ["view_name", "api_name", "variant_tree"]}

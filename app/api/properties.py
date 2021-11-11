@@ -2,8 +2,9 @@ import json
 from . import api
 from flask import jsonify, request, Response
 from app import db
-from ..models import PropertyValues, MaterialProperties
+from ..models import PropertyValues, MaterialProperties, Permission
 from ..decimalencoder import DecimalEncoder
+from ..decorators import permission_required
 
 
 @api.route('/properties')
@@ -13,6 +14,7 @@ def get_properties():
 
 
 @api.route('/properties', methods=['POST'])
+@permission_required(Permission.OPT)
 def new_property():
     prop = request.get_json()
     p = MaterialProperties(**prop)
@@ -23,12 +25,14 @@ def new_property():
 
 
 @api.route('/properties/<int:cId>', methods=['PUT'])
+@permission_required(Permission.OPT)
 def edit_property(cId):
     prop = request.get_json()
     return edit_entry(MaterialProperties, prop, cId)
 
 
 @api.route('/properties/<int:cId>', methods=['DELETE'])
+@permission_required(Permission.OPT)
 def del_property(cId):
     prop = MaterialProperties.query.filter_by(id=cId).first()
     db.session.delete(prop)
@@ -47,6 +51,7 @@ def get_prop_values():
 
 
 @api.route('/properties/values', methods=['POST'])
+@permission_required(Permission.DATA)
 def new_prop_value():
     value = request.get_json()
     v = PropertyValues(**value)
@@ -57,12 +62,14 @@ def new_prop_value():
 
 
 @api.route('/properties/values/<int:cId>', methods=['PUT'])
+@permission_required(Permission.DATA)
 def edit_prop_value(cId):
     value = request.get_json()
     return edit_entry(PropertyValues, value, cId)
 
 
 @api.route('/properties/values/<int:cId>', methods=['DELETE'])
+@permission_required(Permission.DATA)
 def del_prop_value(cId):
     return delete_entry(PropertyValues, cId)
 

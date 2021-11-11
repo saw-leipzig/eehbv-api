@@ -1,9 +1,10 @@
 import json
 from flask import jsonify, request, abort, Response
 from ..decimalencoder import DecimalEncoder
-from ..models import components
+from ..models import components, Permission
 from . import api
 from app import db
+from ..decorators import permission_required
 
 
 @api.before_request
@@ -32,6 +33,7 @@ def get_component(cType, cId):
 
 
 @api.route('/components/<cType>', methods=['POST'])
+@permission_required(Permission.DATA)
 def new_component(cType):
     comp = request.get_json()
     c = components[cType](**comp)
@@ -42,6 +44,7 @@ def new_component(cType):
 
 
 @api.route('/components/<cType>/<int:cId>', methods=['PUT'])
+@permission_required(Permission.DATA)
 def edit_component(cType, cId):
     comp = request.get_json()
     components[cType].query.filter_by(id=cId).update(comp)
@@ -52,6 +55,7 @@ def edit_component(cType, cId):
 
 
 @api.route('/components/<cType>/<int:cId>', methods=['DELETE'])
+@permission_required(Permission.DATA)
 def del_component(cType, cId):
     c = components[cType].query.filter_by(id=cId).first()
     db.session.delete(c)
