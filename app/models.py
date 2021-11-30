@@ -71,6 +71,15 @@ class PropertyValues(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['property_values']
 
 
+class GlossaryProcesses(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['glossary_processes']
+
+
+class Glossary(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['glossary']
+    glossary_processes = db.relationship('GlossaryProcesses', lazy=False)
+
+
 class Roles(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['roles']
 

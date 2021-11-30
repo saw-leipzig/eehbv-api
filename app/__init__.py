@@ -22,6 +22,8 @@ def create_app(config_name):
     db.metadata.tables['column_info'].append_constraint(ForeignKeyConstraint(['component_id'], ['components.id']))
     db.metadata.tables['process_parameters'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     db.metadata.tables['variant_components'].append_constraint(ForeignKeyConstraint(['variants_id'], ['variants.id']))
+    db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['glossary_id'], ['glossary.id']))
+    db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     # db.metadata.tables['processes'].__table__.columns.pp = db.append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     print(db.metadata.tables)
 

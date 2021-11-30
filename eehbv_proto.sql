@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 05. Nov 2021 um 15:13
+-- Erstellungszeit: 29. Nov 2021 um 16:18
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -179,6 +179,30 @@ CREATE TABLE `gearblobs` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `glossary`
+--
+
+CREATE TABLE `glossary` (
+  `id` int(11) NOT NULL,
+  `term` varchar(60) NOT NULL,
+  `text` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `glossary_processes`
+--
+
+CREATE TABLE `glossary_processes` (
+  `id` int(11) NOT NULL,
+  `glossary_id` int(11) NOT NULL,
+  `processes_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `info_texts`
 --
 
@@ -263,19 +287,25 @@ CREATE TABLE `process_parameters` (
   `name` varchar(30) NOT NULL,
   `unit` varchar(15) NOT NULL,
   `variable_name` varchar(20) NOT NULL,
-  `material_properties_id` int(11) DEFAULT NULL
+  `material_properties_id` int(11) DEFAULT NULL,
+  `restricting` tinyint(1) NOT NULL,
+  `dependent` tinyint(1) NOT NULL,
+  `derived_parameter` varchar(20) DEFAULT NULL,
+  `min_column` varchar(40) DEFAULT NULL,
+  `max_column` varchar(40) DEFAULT NULL,
+  `dependency` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Daten für Tabelle `process_parameters`
 --
 
-INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`, `material_properties_id`) VALUES
-(1, 1, 'Werkstückdicke', 'mm', 'part_width', NULL),
-(2, 1, 'Werkstücklänge', 'cm', 'part_length', NULL),
-(3, 1, 'Fräsbreite', 'mm', 'milling_width', NULL),
-(4, 1, 'Frästiefe', 'mm', 'milling_depth', NULL),
-(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05', 2);
+INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`, `material_properties_id`, `restricting`, `dependent`, `derived_parameter`, `min_column`, `max_column`, `dependency`) VALUES
+(1, 1, 'Werkstückdicke', 'mm', 'part_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(2, 1, 'Werkstücklänge', 'cm', 'part_length', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(3, 1, 'Fräsbreite', 'mm', 'milling_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(4, 1, 'Frästiefe', 'mm', 'milling_depth', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05', 2, 0, 0, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -401,8 +431,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password_hash`, `role`) VALUES
-(1, 'admin', 'pbkdf2:sha256:150000$MIy5TNLq$8870e7422e12a521007f1a35dd67ba02436862e4bc058ed72e2b9fbad1ae19d2', 3),
-(2, 'user', 'pbkdf2:sha256:150000$tcDN0hyg$d35c532d6a6f0109d88245759e36532dc8813faf994a9d17fbad336a863f0309', 2);
+(1, 'admin', 'pbkdf2:sha256:150000$0d1YxUHK$1828d59860ed572d79ea16f33a6155b35a906affede33336542db332eb833c3f', 3),
+(2, 'user', 'pbkdf2:sha256:150000$tcDN0hyg$d35c532d6a6f0109d88245759e36532dc8813faf994a9d17fbad336a863f0309', 1),
+(3, 'Markus', 'pbkdf2:sha256:150000$l7UAAUGj$90703a7eb8e9433f167ff44789515951d73179df8add124207cf1d817604cf29', 3),
+(4, 'user2', 'pbkdf2:sha256:150000$DUJ2UdyH$4d75142dffbecee806acd8be5d6b91be2199524d9b2bbc694c85994e3bd21722', 2);
 
 -- --------------------------------------------------------
 
@@ -713,6 +745,20 @@ ALTER TABLE `gearblobs`
   ADD PRIMARY KEY (`gear_id`);
 
 --
+-- Indizes für die Tabelle `glossary`
+--
+ALTER TABLE `glossary`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indizes für die Tabelle `glossary_processes`
+--
+ALTER TABLE `glossary_processes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `glossary_processes_glossary` (`glossary_id`),
+  ADD KEY `glossary_processes_process` (`processes_id`);
+
+--
 -- Indizes für die Tabelle `info_texts`
 --
 ALTER TABLE `info_texts`
@@ -861,6 +907,18 @@ ALTER TABLE `component_motor`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT für Tabelle `glossary`
+--
+ALTER TABLE `glossary`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `glossary_processes`
+--
+ALTER TABLE `glossary_processes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT für Tabelle `info_texts`
 --
 ALTER TABLE `info_texts`
@@ -906,7 +964,7 @@ ALTER TABLE `tree_questions`
 -- AUTO_INCREMENT für Tabelle `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT für Tabelle `variants`
@@ -959,6 +1017,13 @@ ALTER TABLE `column_info`
 --
 ALTER TABLE `gearblobs`
   ADD CONSTRAINT `gearblob` FOREIGN KEY (`gear_id`) REFERENCES `component_gear` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `glossary_processes`
+--
+ALTER TABLE `glossary_processes`
+  ADD CONSTRAINT `glossary_processes_glossary` FOREIGN KEY (`glossary_id`) REFERENCES `glossary` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `glossary_processes_process` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `motorlobs`
