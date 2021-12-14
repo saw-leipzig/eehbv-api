@@ -48,14 +48,40 @@ def get_tables():
 @api.route('/component-types/<int:cId>')
 def get_table(cId):
     component_type = Components.query.filter_by(id=cId).first()
+    return jsonify(get_component_table(cId, component_type))
+
+
+@api.route('/component-types/<cType>')
+def get_table_type(cType):
+    return jsonify(get_table_type_object(cType))
+
+
+def get_table_type_object(cType):
+    component_type = Components.query.filter_by(api_name=cType).first()
+    return get_component_table(component_type.id, component_type)
+
+
+def get_component_table(cId, component_type):
     infos = ColumnInfo.query.filter_by(component_id=cId)
     c_type = {**component_type.as_dict(),
               'infos': sorted([info.as_dict() for info in infos],
                               key=lambda x: x['position'])}
-    return jsonify(c_type)
+    return c_type
 
 
 @api.route('/component-infos')
 def get_infos():
     infos = ColumnInfo.query.all()
-    return jsonify({'infos': [info.as_dict() for info in infos]})
+    return jsonify([info.as_dict() for info in infos])
+
+
+@api.route('/component-infos/<cType>')
+def get_info(cType):
+    return jsonify(get_info_object(cType))
+
+
+def get_info_object(cType):
+    component_type = Components.query.filter_by(api_name=cType).first()
+    c_id = component_type.id
+    infos = ColumnInfo.query.filter_by(component_id=c_id)
+    return [info.as_dict() for info in infos]

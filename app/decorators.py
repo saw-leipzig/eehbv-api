@@ -1,6 +1,6 @@
 from functools import wraps
 import json
-from flask import abort, current_app, request, Response
+from flask import current_app, request, Response
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
