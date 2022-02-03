@@ -4,20 +4,20 @@ import threading
 from datetime import datetime
 from flask import request, current_app, Response
 
-from ..models import ProblemWrapper
+from ..models import ProblemWrapper, TargetFuncWrapper, Variants, components
 from . import api
-
 
 FINISHED = '/finished'
 FAILED = '/failed'
 
 problems = ProblemWrapper()
+targetFunctions = TargetFuncWrapper()
 
 
 @api.route('/problems/result/<timestamp>', methods=['GET'])
 def get_result(timestamp):
     path = current_app.config['DATA_PATH'] + '/' + timestamp
-    if not(os.path.exists(path + FAILED)) and not(os.path.exists(path + FINISHED)):
+    if not (os.path.exists(path + FAILED)) and not (os.path.exists(path + FINISHED)):
         return Response('{"status": "pending"}', 200, mimetype='application/json')
     with open(path + '/result.html', 'r') as f:
         result = f.read()
@@ -37,7 +37,8 @@ def handle_problem(cId):
         solve(cId, model['process']['api_name'], model, path)
     except:
         return Response('Wrong arguments', 400, mimetype='text/plain')
-    return Response(date_time, 202, mimetype='text/plain', headers={'Content-Location': '/problems/result/' + date_time})
+    return Response(date_time, 202, mimetype='text/plain',
+                    headers={'Content-Location': '/problems/result/' + date_time})
 
 
 def solve(cId, process, model, path):
@@ -47,16 +48,78 @@ def solve(cId, process, model, path):
     solver_thread.start()
 
 
+def persist_outcome(result_file, msg, status_file=None):
+    with open(result_file, 'w') as f:
+        f.write(msg)
+    if status_file is not None:
+        end_solver(status_file)
+
+
+def persist_variant(vId, name, result, path):
+    result_file = path + '/result_' + str(vId) + '.html'
+    res_str = format_result(result, name)
+    persist_outcome(result_file, res_str)
+
+
+def end_solver(status_file):
+    open(status_file, 'a').close()
+
+
+def format_result(result, name):
+    # ToDo: Include Infos about variant, info, component's description ...
+    return '<div>{name}</div><div>{res}</div>'.format(name=name,
+                                                      res=result if (isinstance(result, str)) else json.dumps(result))
+
+
 def threaded_solve(cApp, cId, process, model, path):
     result_file = path + '/result.html'
     try:
-        with cApp.app_context():
-            result = problems.call_solver(cId, process, model)
-        res_str = '<div>{res}</div>'.format(res=result if (isinstance(result, str)) else json.dumps(result))
-        with open(result_file, 'w') as f:
-            f.write(res_str)
-        open(path + FINISHED, 'a').close()
+        with cApp.app_context():  # provide context for this thread
+            load_data_and_solve(cId, process, model, path)
+        end_solver(path + FINISHED)
     except BaseException as e:
-        with open(result_file, 'w') as f:
-            f.write(e.args[0] + '\n' + e.args[0])
-        open(path + FAILED, 'a').close()
+        persist_outcome(result_file, e.args[0] + '\n' + e.args[0], path + FAILED)
+
+
+def load_data_and_solve(cId, process, model, path):
+    variants = Variants.query. \
+        filter(Variants.processes_id == cId, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
+    names, data = load_data(variants)
+    component_keys = ['component_api_name', 'variable_name', 'description']
+    for v in variants:
+        target_func = targetFunctions.get_func(cId, v.id, process, v)
+        signature = get_signature(v.target_func)
+        variant_model = {'process_parameters': model['process_parameters'],
+                         'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
+                             'conditions'],
+                         'components': [{key: c.as_dict()[key] for key in component_keys} for c in
+                                        sorted(v.variant_components, key=lambda cc: cc.position)]}
+        variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
+        ids, variant_result, info = \
+            problems.call_solver(cId, process, target_func, signature, variant_model,
+                                 {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        # ToDo: extract model/manufacturer from index
+        persist_variant(v.id, v.name, variant_result, path)
+
+
+def load_data(variants):
+    names = {}
+    data = {}
+    for v in variants:
+        for c in v.variant_components:
+            comp_name = c.component_api_name
+            if comp_name not in names:
+                comps = components[comp_name].query.all()
+                names[comp_name] = [{'name': cc.name, 'manufacturer': cc.manufacturer} for cc in comps]
+                keys = [k for k in comps[0].as_dict().keys() if k not in ['id', 'name', 'manufacturer']]
+                data[comp_name] = [{key: cc.as_dict()[key] for key in keys} for cc in comps]
+    return names, data
+
+
+def get_signature(target_func):
+    for line in target_func.splitlines():
+        if line.startswith('def target_func('):
+            start = line.index('t')
+            end = line.index(')')
+            return line[start:end + 1]
+    raise SyntaxError('Definition of target function not found')

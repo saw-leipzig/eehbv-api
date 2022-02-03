@@ -176,14 +176,28 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, cId, process, model):
+    def call_solver(self, cId, process, tf, sig, model, data):
         if cId not in self.problems:
             p = ProblemType.query.filter_by(processes_id=cId).first()
             if p is None:
                 raise Exception('Problem not defined')
             self.problems[cId] = import_code(p.code, process)
-        time.sleep(16)  # for testing polling only
-        return self.problems[cId].call_solver(model)
+        # time.sleep(16)  # for testing polling only
+        return self.problems[cId].call_solver(tf, sig, model, data)
+
+
+class TargetFuncWrapper:
+    def __init__(self):
+        self.target_functions = {}
+
+    def get_func(self, pId, vId, process, variant):
+        if pId not in self.target_functions:
+            self.target_functions[pId] = {}
+        if vId not in self.target_functions[pId]:
+            if variant.target_func is None or variant.target_func == '':
+                raise Exception('Target function not defined')
+            self.target_functions[pId][vId] = import_code(variant.target_func, process + '_' + str(vId))
+        return self.target_functions[pId][vId].target_func
 
 
 create_models()

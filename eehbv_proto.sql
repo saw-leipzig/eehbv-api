@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 29. Nov 2021 um 16:18
+-- Erstellungszeit: 03. Feb 2022 um 15:10
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -85,7 +85,7 @@ INSERT INTO `column_info` (`id`, `component_id`, `column_name`, `view_name`, `ty
 (2, 1, 'manufacturer', 'Hersteller', 'VARCHAR', 2, NULL),
 (3, 1, 'n_max', 'Max. Drehzahl', 'DOUBLE', 3, 's^-1'),
 (4, 1, 'm_max', 'Max. Drehmoment', 'DOUBLE', 4, 'Nm'),
-(5, 1, 'asycn', 'Asynchron', 'BOOL', 5, NULL),
+(5, 1, 'async', 'Asynchron', 'BOOL', 5, NULL),
 (6, 2, 'name', 'Modell', 'VARCHAR', 1, NULL),
 (7, 2, 'manufacturer', 'Hersteller', 'VARCHAR', 2, NULL),
 (8, 2, 'gear_ratio', 'Übersetzung', 'DOUBLE', 3, NULL);
@@ -188,6 +188,17 @@ CREATE TABLE `glossary` (
   `text` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Daten für Tabelle `glossary`
+--
+
+INSERT INTO `glossary` (`id`, `term`, `text`) VALUES
+(1, 'Spezifische Schnittkraft', 'Die Spezifische Zerspankraft k ist die auf den Spanungsquerschnitt A bezogene Zerspankraft F.'),
+(2, 'Brinellhärte', '<b>Härte</b> ist der mechanische Widerstand, den ein Werkstoff der mechanischen Eindringung eines anderen Körpers entgegensetzt. Je nach der Art der Einwirkung unterscheidet man verschiedene Arten von Härte.\r\nDie vom schwedischen Ingenieur Johan August <em>Brinell</em> im Jahre 1900 entwickelte und auf der Weltausstellung in Paris präsentierte Methode der Härteprüfung kommt bei weichen bis mittelharten Metallen (EN ISO 6506-1 bis EN ISO 6506-4) wie zum Beispiel unlegiertem Baustahl, Aluminiumlegierungen, bei Holz (ISO 3350) und bei Werkstoffen mit ungleichmäßigem Gefüge, wie etwa Gusseisen, zur Anwendung. Dabei wird eine Hartmetallkugel mit einer festgelegten Prüfkraft F in die Oberfläche des zu prüfenden Werkstückes gedrückt.'),
+(3, 'Test', 'Testtext'),
+(4, 'Test2', 'Testtext2'),
+(5, 'Test3', 'Testtext 3');
+
 -- --------------------------------------------------------
 
 --
@@ -199,6 +210,20 @@ CREATE TABLE `glossary_processes` (
   `glossary_id` int(11) NOT NULL,
   `processes_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `glossary_processes`
+--
+
+INSERT INTO `glossary_processes` (`id`, `glossary_id`, `processes_id`) VALUES
+(1, 1, 1),
+(2, 2, 1),
+(3, 2, 2),
+(4, 3, 1),
+(5, 3, 2),
+(18, 4, 2),
+(20, 5, 1),
+(21, 5, 2);
 
 -- --------------------------------------------------------
 
@@ -273,7 +298,8 @@ CREATE TABLE `processes` (
 --
 
 INSERT INTO `processes` (`id`, `view_name`, `api_name`, `variant_tree`) VALUES
-(1, 'Kantenanleimmaschine', 'edge_banding', 1);
+(1, 'Kantenanleimmaschine', 'edge_banding', 1),
+(2, 'Dummy-Prozess', 'dummy', 0);
 
 -- --------------------------------------------------------
 
@@ -301,11 +327,11 @@ CREATE TABLE `process_parameters` (
 --
 
 INSERT INTO `process_parameters` (`id`, `processes_id`, `name`, `unit`, `variable_name`, `material_properties_id`, `restricting`, `dependent`, `derived_parameter`, `min_column`, `max_column`, `dependency`) VALUES
-(1, 1, 'Werkstückdicke', 'mm', 'part_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
-(2, 1, 'Werkstücklänge', 'cm', 'part_length', NULL, 0, 0, NULL, NULL, NULL, NULL),
-(3, 1, 'Fräsbreite', 'mm', 'milling_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
-(4, 1, 'Frästiefe', 'mm', 'milling_depth', NULL, 0, 0, NULL, NULL, NULL, NULL),
-(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'k_c05', 2, 0, 0, NULL, NULL, NULL, NULL);
+(1, 1, 'Werkstückdicke', 'mm', 'p_part_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(2, 1, 'Werkstücklänge', 'cm', 'p_part_length', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(3, 1, 'Fräsbreite', 'mm', 'p_milling_width', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(4, 1, 'Frästiefe', 'mm', 'p_milling_depth', NULL, 0, 0, NULL, NULL, NULL, NULL),
+(5, 1, 'Spez. Schnittkraft', 'N/mm^1,5', 'p_k_c05', 2, 0, 0, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -324,7 +350,7 @@ CREATE TABLE `process_solvers` (
 --
 
 INSERT INTO `process_solvers` (`id`, `processes_id`, `code`) VALUES
-(1, 1, 'def call_solver(model):\r\n    return internalsolve(model)\r\n\r\n\r\ndef internalsolve(model):\r\n    for key, value in model.items():\r\n        print (key, value)\r\n    return model\r\n');
+(1, 1, 'from math import *\r\nimport copy\r\n\r\n\r\nindices = {}\r\nopt_indices = {}\r\nopt_value = -1\r\n\r\n\r\ndef call_solver(target_func, tf_sig, model, data):\r\n    # ToDo: sort components according to conditions for optimized abort situation\r\n    wander_tree(model, model[\'components\'], {}, target_func, tf_sig, data)\r\n    print(\'OPT\')\r\n    print(opt_indices)\r\n    print(opt_value)\r\n    return opt_indices, opt_value, \'no special remarks\'\r\n\r\n\r\ndef wander_tree(model, components, combination, tf, tf_sig, data):\r\n    current_comp_type = data[components[0][\'component_api_name\']]\r\n    global indices\r\n    for index, comp in enumerate(current_comp_type):\r\n        var_name = components[0][\'variable_name\']\r\n        indices[var_name] = index\r\n        new_combination = {**combination, var_name: comp}\r\n        if conditions_satisfied(model, new_combination, data):\r\n            if len(components) > 1:\r\n                new_components = copy.copy(components)\r\n                new_components.pop(0)\r\n                wander_tree(model, new_components, new_combination, tf, tf_sig, data)\r\n            else:\r\n                eval_target_func(model, new_combination, tf, tf_sig, data)\r\n\r\n\r\ndef conditions_satisfied(model, combination, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    print(\'condition_satisfied\')\r\n    print(combination)\r\n    for cond in model[\'conditions\']:\r\n        # ToDo: check, whether variables are available, return false, if so spread combination vars and if condition fails return False\r\n        return True\r\n    # ToDo: check implicit conditions\r\n    return True\r\n\r\n\r\ndef eval_target_func(model, combination, target_func, tf_sig, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    global opt_value\r\n    global opt_indices\r\n    global indices\r\n    val = [0]\r\n    weight_sum = [0]\r\n    for pps in model[\'process_parameters\']:\r\n        for pp in pps.keys():\r\n            exec(pp + \' = pps[\"\' + pp + \'\"]\')\r\n        exec(\'weight_sum[0] = weight_sum[0] + portion\')\r\n        exec(\'val[0] = val[0] + portion * \' + tf_sig)\r\n    val[0] = val[0] / weight_sum[0]\r\n    if val[0] < opt_value or opt_value == -1:\r\n        opt_value = val[0]\r\n        opt_indices = {**indices}\r\n');
 
 -- --------------------------------------------------------
 
@@ -467,7 +493,7 @@ INSERT INTO `variants` (`id`, `processes_id`, `name`, `target_func`) VALUES
 (12, 1, 'Fügefraser, Leim mit Eckenkopierer, Ziehklinge und Schwabbel', ''),
 (13, 1, 'Fügefraser, Leim mit Eckenkopierer, Ziehklinge und Eck-/Schwabbel', ''),
 (14, 1, 'Fügefraser, Leim mit Eckenkopierer, Ziehklinge, Schwabbel und Nutfräse', ''),
-(15, 1, 'Fügefraser, Leim mit Eckenkopierer, Bündigfräser', ''),
+(15, 1, 'Fügefraser, Leim mit Eckenkopierer, Bündigfräser', 'def noise(v):\r\n    print(\'Variant 15 - noise\')\r\n    print(v)\r\n\r\ndef target_func(p_milling_width):\r\n    v = p_milling_width * p_milling_width\r\n    noise(v)\r\n    return v\r\n'),
 (16, 1, 'Fügefraser, Leim mit Eckenkopierer, Bündig- und Universalfräser', ''),
 (17, 1, 'Fügefraser, Leim mit Eckenkopierer, Bündigfräser und Eckschwabbel', ''),
 (18, 1, 'Laser', ''),
@@ -904,19 +930,19 @@ ALTER TABLE `component_gear`
 -- AUTO_INCREMENT für Tabelle `component_motor`
 --
 ALTER TABLE `component_motor`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT für Tabelle `glossary`
 --
 ALTER TABLE `glossary`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT für Tabelle `glossary_processes`
 --
 ALTER TABLE `glossary_processes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT für Tabelle `info_texts`
@@ -934,7 +960,7 @@ ALTER TABLE `material_properties`
 -- AUTO_INCREMENT für Tabelle `processes`
 --
 ALTER TABLE `processes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT für Tabelle `process_parameters`

@@ -23,26 +23,26 @@ def get_process(cId):
 @permission_required(Permission.OPT)
 def create_process():
     proc = request.get_json()
-    proc_dict = {key: proc[key] for key in ["view_name", "api_name", "variant_tree"]}
+    proc_dict = {key: proc[key] for key in ['view_name', 'api_name', 'variant_tree']}
     p = Processes(**proc_dict)
     db.session.add(p)
     db.session.commit()
-    for param in proc["process"]["process_parameters"]:
-        param_dict = {**param, "processes_id": p.id}
+    for param in proc['process']['process_parameters']:
+        param_dict = {**param, 'processes_id': p.id}
         pp = ProcessParameters(**param_dict)
         db.session.add(pp)
-    for variant in proc["variants"]:
-        var_dict = {**variant, "processes_id": p.id}
+    for variant in proc['variants']:
+        var_dict = {**variant, 'processes_id': p.id}
         v = Variants(**var_dict)
         db.session.add(v)
-    var_select_dict = {"processes_id": p.id, "selection": json.dumps(proc["variant_selection"])}
+    var_select_dict = {'processes_id': p.id, 'selection': json.dumps(proc['variant_selection'])}
     vs = VariantSelection(**var_select_dict)
     db.session.add(vs)
-    solver_dict = {"processes_id": p.id, "code": proc["solver"]}
+    solver_dict = {'processes_id': p.id, 'code': proc['solver']}
     s = ProblemType(**solver_dict)
     db.session.add(s)
     for info_text in proc['infoTexts']:
-        info_dict = {**info_text, "type_id": p.id}
+        info_dict = {**info_text, 'type_id': p.id}
         i = InfoTexts(**info_dict)
         db.session.add(i)
     db.session.commit()
