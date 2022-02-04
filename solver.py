@@ -8,8 +8,9 @@ opt_value = -1
 
 
 def call_solver(target_func, tf_sig, model, data):
-    # ToDo: sort components according to conditions for optimized abort situation
-    wander_tree(model, model['components'], {}, target_func, tf_sig, data)
+    # sorting: occurrence of component properties in conditions can lead to earlier termination of solution branch
+    components = sorted(model['components'], key=sort_components_by_conditions(model['conditions']), reverse=True)
+    wander_tree(model, components, {}, target_func, tf_sig, data)
     print('OPT')
     print(opt_indices)
     print(opt_value)
@@ -37,11 +38,16 @@ def conditions_satisfied(model, combination, data):
         exec(data_key + ' = data["' + data_key + '"]')
     for comb_key in combination.keys():
         exec(comb_key + ' = combination["' + comb_key + '"]')
-    print('condition_satisfied')
-    print(combination)
-    for cond in model['conditions']:
-        # ToDo: check, whether variables are available, return false, if so spread combination vars and if condition fails return False
-        return True
+    for parameter_set in model['process_parameters']:
+        for parameter_key in parameter_set.keys():
+            exec(parameter_key + ' = parameter_set["' + parameter_key + '"]')
+        for cond in model['conditions']:
+            try:
+                result = eval(cond)
+                if not result:
+                    return False
+            except NameError as ex:     # conditions with missing vars have to be evaluated at a deeper level
+                print('Condition parameter not defined: ' + ex.args[0])
     # ToDo: check implicit conditions
     return True
 
@@ -56,12 +62,24 @@ def eval_target_func(model, combination, target_func, tf_sig, data):
     global indices
     val = [0]
     weight_sum = [0]
-    for pps in model['process_parameters']:
-        for pp in pps.keys():
-            exec(pp + ' = pps["' + pp + '"]')
+    for parameter_set in model['process_parameters']:
+        for pp in parameter_set.keys():
+            exec(pp + ' = parameter_set["' + pp + '"]')
         exec('weight_sum[0] = weight_sum[0] + portion')
         exec('val[0] = val[0] + portion * ' + tf_sig)
     val[0] = val[0] / weight_sum[0]
     if val[0] < opt_value or opt_value == -1:
         opt_value = val[0]
         opt_indices = {**indices}
+
+
+def sort_components_by_conditions(conditions):
+    def count_component_occurrence_in_conditions(comp, cond=conditions):
+        count = 0
+        for c in cond:
+            tokens = c.replace('[', ' ').split()
+            for token in tokens:
+                if comp['variable_name'] == token:
+                    count += 1
+        return count
+    return count_component_occurrence_in_conditions
