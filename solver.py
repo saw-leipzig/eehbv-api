@@ -68,7 +68,7 @@ def eval_target_func(model, combination, target_func, tf_sig, data):
         exec('weight_sum[0] = weight_sum[0] + portion')
         exec('val[0] = val[0] + portion * ' + tf_sig)
     val[0] = val[0] / weight_sum[0]
-    if val[0] < opt_value or opt_value == -1:
+    if val[0] > -1 and (val[0] < opt_value or opt_value == -1):
         opt_value = val[0]
         opt_indices = {**indices}
 

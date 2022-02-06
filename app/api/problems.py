@@ -55,9 +55,9 @@ def persist_outcome(result_file, msg, status_file=None):
         end_solver(status_file)
 
 
-def persist_variant(vId, name, result, path):
+def persist_variant(vId, variant_name, result, combination, info, path):
     result_file = path + '/result_' + str(vId) + '.html'
-    res_str = format_result(result, name)
+    res_str = format_result(result, variant_name, combination, info)
     persist_outcome(result_file, res_str)
 
 
@@ -65,10 +65,18 @@ def end_solver(status_file):
     open(status_file, 'a').close()
 
 
-def format_result(result, name):
+def format_result(result, name, combination, info):
     # ToDo: Include Infos about variant, info, component's description ...
-    return '<div>{name}</div><div>{res}</div>'.format(name=name,
-                                                      res=result if (isinstance(result, str)) else json.dumps(result))
+    lines = '<p>'\
+            + '</p><p>'.\
+                join(['<em>{type}</em>: {man} - {model}'.format(type=item[0], man=item[1]['manufacturer'], model=item[1]['name'])
+                      for item in combination.items()])\
+            + '</p>'
+    return '<h2>{name}</h2><div>Ergebnis: {res}</div><div>{lines}</div><div>{info}</div>'.\
+        format(name=name,
+               res=result if (isinstance(result, str)) else json.dumps(result),
+               lines=lines,
+               info=info)
 
 
 def threaded_solve(cApp, cId, process, model, path):
@@ -78,7 +86,7 @@ def threaded_solve(cApp, cId, process, model, path):
             load_data_and_solve(cId, process, model, path)
         end_solver(path + FINISHED)
     except BaseException as e:
-        persist_outcome(result_file, e.args[0] + '\n' + e.args[0], path + FAILED)
+        persist_outcome(result_file, e.args[0] + '\n', path + FAILED)
 
 
 def load_data_and_solve(cId, process, model, path):
@@ -95,11 +103,12 @@ def load_data_and_solve(cId, process, model, path):
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
                                         sorted(v.variant_components, key=lambda cc: cc.position)]}
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
-        ids, variant_result, info = \
+        indices, variant_result, info = \
             problems.call_solver(cId, process, target_func, signature, variant_model,
                                  {key: data[key] for key in variant_comp_types})  # pass only necessary data
         # ToDo: extract model/manufacturer from index
-        persist_variant(v.id, v.name, variant_result, path)
+        opt_combination = get_component_names_by_indices(indices, variant_model['components'], names)
+        persist_variant(v.id, v.name, variant_result, opt_combination, info, path)
 
 
 def load_data(variants):
@@ -123,3 +132,7 @@ def get_signature(target_func):
             end = line.index(')')
             return line[start:end + 1]
     raise SyntaxError('Definition of target function not found')
+
+
+def get_component_names_by_indices(ids, comps, names):
+    return {comp['description']: names[comp['component_api_name']][ids[comp['variable_name']]] for comp in comps}
