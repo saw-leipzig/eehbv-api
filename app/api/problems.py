@@ -49,16 +49,20 @@ def solve(cId, process, model, path):
 
 
 def persist_outcome(result_file, msg, status_file=None):
-    with open(result_file, 'w') as f:
-        f.write(msg)
+    if os.path.exists(result_file):
+        with open(result_file, 'a') as f:
+            f.write('\n')
+            f.write(msg)
+    else:
+        with open(result_file, 'w') as f:
+            f.write(msg)
     if status_file is not None:
         end_solver(status_file)
 
 
-def persist_variant(vId, variant_name, result, combination, info, path):
-    result_file = path + '/result_' + str(vId) + '.html'
+def persist_variant(variant_name, result, combination, info, path):
     res_str = format_result(result, variant_name, combination, info)
-    persist_outcome(result_file, res_str)
+    persist_outcome(path, res_str)
 
 
 def end_solver(status_file):
@@ -83,7 +87,7 @@ def threaded_solve(cApp, cId, process, model, path):
     result_file = path + '/result.html'
     try:
         with cApp.app_context():  # provide context for this thread
-            load_data_and_solve(cId, process, model, path)
+            load_data_and_solve(cId, process, model, result_file)
         end_solver(path + FINISHED)
     except BaseException as e:
         persist_outcome(result_file, e.args[0] + '\n', path + FAILED)
@@ -108,7 +112,7 @@ def load_data_and_solve(cId, process, model, path):
                                  {key: data[key] for key in variant_comp_types})  # pass only necessary data
         # ToDo: extract model/manufacturer from index
         opt_combination = get_component_names_by_indices(indices, variant_model['components'], names)
-        persist_variant(v.id, v.name, variant_result, opt_combination, info, path)
+        persist_variant(v.name, variant_result, opt_combination, info, path)
 
 
 def load_data(variants):
