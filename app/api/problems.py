@@ -78,7 +78,7 @@ def format_result(result, name, combination, info):
             + '</p>'
     return '<h2>{name}</h2><div>Ergebnis: {res}</div><div>{lines}</div><div>{info}</div>'.\
         format(name=name,
-               res=result if (isinstance(result, str)) else json.dumps(result),
+               res=result,
                lines=lines,
                info=info)
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 07. Feb 2022 um 00:29
+-- Erstellungszeit: 07. Feb 2022 um 01:57
 -- Server-Version: 10.4.20-MariaDB
 -- PHP-Version: 8.0.9
 
@@ -88,7 +88,15 @@ INSERT INTO `column_info` (`id`, `component_id`, `column_name`, `view_name`, `ty
 (5, 1, 'async', 'Asynchron', 'BOOL', 5, NULL),
 (6, 2, 'name', 'Modell', 'VARCHAR', 1, NULL),
 (7, 2, 'manufacturer', 'Hersteller', 'VARCHAR', 2, NULL),
-(8, 2, 'gear_ratio', 'Übersetzung', 'DOUBLE', 3, NULL);
+(8, 2, 'gear_ratio', 'Übersetzung', 'DOUBLE', 3, NULL),
+(20, 10, 'name', 'Modell', 'VARCHAR', 1, NULL),
+(21, 10, 'manufacturer', 'Hersteller', 'VARCHAR', 2, NULL),
+(22, 10, 'diameter', 'Durchmesser', 'DOUBLE', 3, 'mm'),
+(23, 10, 'max_width', 'Breite', 'DOUBLE', 4, 'mm'),
+(24, 10, 'teeth', 'Zahnzahl', 'DOUBLE', 5, ''),
+(25, 10, 'cutting_angle', 'Schneidwinkel', 'DOUBLE', 6, 'deg'),
+(26, 10, 'nmax', 'Max. Umdrehungszahl', 'DOUBLE', 7, '1/min'),
+(27, 10, 'mass', 'Masse', 'DOUBLE', 8, 'kg');
 
 -- --------------------------------------------------------
 
@@ -110,7 +118,36 @@ CREATE TABLE `components` (
 
 INSERT INTO `components` (`id`, `table_name`, `view_name`, `api_name`, `is_aggregate`) VALUES
 (1, 'component_motor', 'Motoren', 'motors', 0),
-(2, 'component_gear', 'Getriebe', 'gears', 0);
+(2, 'component_gear', 'Getriebe', 'gears', 0),
+(10, 'component_cutters', 'Fräser', 'cutters', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `component_cutters`
+--
+
+CREATE TABLE `component_cutters` (
+  `id` int(11) NOT NULL,
+  `name` varchar(40) DEFAULT NULL,
+  `manufacturer` varchar(40) DEFAULT NULL,
+  `diameter` float DEFAULT NULL,
+  `max_width` float DEFAULT NULL,
+  `teeth` float DEFAULT NULL,
+  `cutting_angle` float DEFAULT NULL,
+  `nmax` float DEFAULT NULL,
+  `mass` float DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Daten für Tabelle `component_cutters`
+--
+
+INSERT INTO `component_cutters` (`id`, `name`, `manufacturer`, `diameter`, `max_width`, `teeth`, `cutting_angle`, `nmax`, `mass`) VALUES
+(1, 'Diamax DP HSK 25R 177651', 'Leuco', 70, 80, 4, 10, 24000, 0),
+(3, 'Diamax DP HSK 25R 177653', 'Leuco', 70, 150, 4, 10, 24000, 0),
+(5, 'Diamax DP HSK 25R 180492', 'Leuco', 70, 80, 6, 10, 24000, 0),
+(7, 'Diamax DP HSK 25R 180494', 'Leuco', 70, 150, 6, 10, 24000, 0);
 
 -- --------------------------------------------------------
 
@@ -753,6 +790,12 @@ ALTER TABLE `components`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indizes für die Tabelle `component_cutters`
+--
+ALTER TABLE `component_cutters`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indizes für die Tabelle `component_gear`
 --
 ALTER TABLE `component_gear`
@@ -912,13 +955,19 @@ ALTER TABLE `aggregate_variables`
 -- AUTO_INCREMENT für Tabelle `column_info`
 --
 ALTER TABLE `column_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT für Tabelle `components`
 --
 ALTER TABLE `components`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT für Tabelle `component_cutters`
+--
+ALTER TABLE `component_cutters`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT für Tabelle `component_gear`
