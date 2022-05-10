@@ -1,0 +1,49 @@
+version: "3"
+services:
+  mariadb:
+    image: mariadb:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - eehbv
+    env_file: .env
+      
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - '8080:80'
+    networks:
+      - eehbv
+    links:
+      - mariadb
+    env_file: .env
+    environment:
+      PMA_HOST: mariadb
+      
+  api:
+    image: saw-leipzig/eehbv-api
+    ports:
+      - '5000:5000'
+    networks:
+      - eehbv
+    depends_on:
+      - mariadb
+    env_file: .env
+      
+  frontend:
+    image: saw-leipzig/eehbv-frontend
+    ports:
+      - '80:8080'
+    networks:
+      - eehbv
+    depends_on:
+      - api
+    env_file: .env
+      
+volumes:
+  mariadb:
+  
+networks:
+  eehbv:
