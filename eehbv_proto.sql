@@ -110,7 +110,7 @@ CREATE TABLE `column_info` (
   PRIMARY KEY (`id`),
   KEY `component_tables` (`component_id`),
   CONSTRAINT `component_tables` FOREIGN KEY (`component_id`) REFERENCES `components` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -122,9 +122,17 @@ LOCK TABLES `column_info` WRITE;
 INSERT INTO `column_info` VALUES
 (1,1,'name','Modell','VARCHAR',1,NULL),
 (2,1,'manufacturer','Hersteller','VARCHAR',2,NULL),
-(3,1,'n_max','Max. Drehzahl','DOUBLE',3,'s^-1'),
-(4,1,'m_max','Max. Drehmoment','DOUBLE',4,'Nm'),
-(5,1,'async','Asynchron','BOOL',5,NULL);
+(3,1,'n_max','Nom. Drehzahl','DOUBLE',13,'s^-1'),
+(28,1,'price','Preis','INT',3,'Euro'),
+(29,1,'p_nominal','Nennleistung','DOUBLE',4,'kW'),
+(32,1,'p_0_25','P(0;25)','DOUBLE',5,'%'),
+(33,1,'p_0_50','P(0;50)','DOUBLE',6,'%'),
+(34,1,'p_0_100','P(0;100)','DOUBLE',7,'%'),
+(35,1,'p_50_25','P(50;25)','DOUBLE',8,'%'),
+(36,1,'p_50_50','P(50;50)','INT',9,'%'),
+(37,1,'p_50_100','P(50;100)','DOUBLE',10,'%'),
+(38,1,'p_90_50','P(90;50)','DOUBLE',11,'%'),
+(39,1,'p_90_100','P(90;100)','DOUBLE',12,'%');
 /*!40000 ALTER TABLE `column_info` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -139,9 +147,17 @@ CREATE TABLE `component_motors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `manufacturer` varchar(40) NOT NULL,
-  `n_max` double NOT NULL,
-  `m_max` double NOT NULL,
-  `async` tinyint(1) NOT NULL,
+  `price` int(11) NOT NULL,
+  `p_nominal` double NOT NULL,
+  `p_0_25` double NOT NULL,
+  `p_0_50` double NOT NULL,
+  `p_0_100` double NOT NULL,
+  `p_50_25` double NOT NULL,
+  `p_50_50` double NOT NULL,
+  `p_50_100` double NOT NULL,
+  `p_90_50` double NOT NULL,
+  `p_90_100` double NOT NULL,
+  `n_nominal` double NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -153,13 +169,13 @@ CREATE TABLE `component_motors` (
 LOCK TABLES `component_motors` WRITE;
 /*!40000 ALTER TABLE `component_motors` DISABLE KEYS */;
 INSERT INTO `component_motors` VALUES
-(1,'motor1','man1',4000,250,0),
-(2,'motor2','man1',4200,230,0),
-(3,'motor3','man1',4200,250,0),
-(4,'motor4','man2',4200,230,0),
-(5,'motor5','man3',4200,230,0),
-(6,'motor6','man2',4500,230,0),
-(8,'motorX','man2',4200,230,0);
+(1,'motor1','ref',0,0.75,9.3,11.7,22.8,12.1,1.5,24.7,19.2,29.5,12000),
+(2,'motor2','ref',0,1.1,7.4,9.7,20.5,10,12.3,22.2,16.2,26.3,12000),
+(3,'motor3','ref',0,0,0,0,0,0,0,0,0,0,12000),
+(4,'motor4','ref',0,0,0,0,0,0,0,0,0,0,12000),
+(5,'motor5','ref',0,0,0,0,0,0,0,0,0,0,12000),
+(6,'motor6','ref',0,0,0,0,0,0,0,0,0,0,12000),
+(8,'motor7','ref',0,0,0,0,0,0,0,0,0,0,12000);
 /*!40000 ALTER TABLE `component_motors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -314,31 +330,6 @@ INSERT INTO `material_properties` VALUES
 (2,'Schnittkraftkonstante k_c0,5','N/mm^1,5'),
 (7,'Brinellhärte','N/mm^2');
 /*!40000 ALTER TABLE `material_properties` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `motorlobs`
---
-
-DROP TABLE IF EXISTS `motorlobs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `motorlobs` (
-  `motor_id` int(11) NOT NULL,
-  `meta` text DEFAULT NULL,
-  `profile` blob DEFAULT NULL,
-  PRIMARY KEY (`motor_id`),
-  CONSTRAINT `motorblob` FOREIGN KEY (`motor_id`) REFERENCES `component_motors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `motorlobs`
---
-
-LOCK TABLES `motorlobs` WRITE;
-/*!40000 ALTER TABLE `motorlobs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `motorlobs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -504,55 +495,6 @@ INSERT INTO `roles` VALUES
 UNLOCK TABLES;
 
 --
--- Table structure for table `tree_questions`
---
-
-DROP TABLE IF EXISTS `tree_questions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `tree_questions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `parent_id` int(11) DEFAULT NULL,
-  `parent_response` tinyint(1) NOT NULL,
-  `variant_questions_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `tree_variant_questions` (`variant_questions_id`),
-  CONSTRAINT `tree_variant_questions` FOREIGN KEY (`variant_questions_id`) REFERENCES `variant_questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `tree_questions`
---
-
-LOCK TABLES `tree_questions` WRITE;
-/*!40000 ALTER TABLE `tree_questions` DISABLE KEYS */;
-INSERT INTO `tree_questions` VALUES
-(4,NULL,0,1),
-(5,4,1,2),
-(6,4,0,3),
-(7,5,1,4),
-(8,6,1,4),
-(9,6,0,4),
-(10,5,0,5),
-(11,10,1,6),
-(12,11,1,7),
-(13,12,0,9),
-(14,11,0,8),
-(15,14,0,7),
-(16,10,0,6),
-(17,16,1,8),
-(18,17,0,9),
-(19,16,0,3),
-(20,19,0,4),
-(21,19,1,4),
-(22,21,1,8),
-(23,22,0,7),
-(24,21,0,10);
-/*!40000 ALTER TABLE `tree_questions` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `users`
 --
 
@@ -613,196 +555,8 @@ LOCK TABLES `variant_components` WRITE;
 INSERT INTO `variant_components` VALUES
 (1,15,1,'motors','v_milling_motor','Fräsermotor'),
 (2,15,2,'motors','v_flush_motor','Bündigfräsermotor'),
-(5,15,3,'gears','v_milling_gear','Fräsergetriebe');
+(5,15,3,'motors','v_forward_motor','Nebenantriebsmotor');
 /*!40000 ALTER TABLE `variant_components` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `variant_excludes`
---
-
-DROP TABLE IF EXISTS `variant_excludes`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `variant_excludes` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `variants_id` int(11) NOT NULL,
-  `response` tinyint(1) NOT NULL,
-  `processes_id` int(11) NOT NULL,
-  `tree_questions_id` int(11) DEFAULT NULL,
-  `variant_questions_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `excludes_processes_id` (`processes_id`),
-  KEY `excludes_variants_id` (`variants_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `variant_excludes`
---
-
-LOCK TABLES `variant_excludes` WRITE;
-/*!40000 ALTER TABLE `variant_excludes` DISABLE KEYS */;
-INSERT INTO `variant_excludes` VALUES
-(1,1,1,1,4,NULL),
-(3,2,1,1,4,NULL),
-(4,3,1,1,4,NULL),
-(5,4,1,1,4,NULL),
-(6,5,0,1,4,NULL),
-(7,6,0,1,4,NULL),
-(8,7,0,1,4,NULL),
-(9,8,0,1,4,NULL),
-(10,9,0,1,4,NULL),
-(11,11,0,1,4,NULL),
-(12,12,0,1,4,NULL),
-(13,13,0,1,4,NULL),
-(14,14,0,1,4,NULL),
-(15,15,0,1,4,NULL),
-(16,16,0,1,4,NULL),
-(17,17,0,1,4,NULL),
-(18,18,0,1,4,NULL),
-(19,19,0,1,4,NULL),
-(20,20,0,1,4,NULL),
-(21,21,0,1,4,NULL),
-(22,22,0,1,4,NULL),
-(23,23,0,1,4,NULL),
-(24,1,1,1,6,NULL),
-(25,2,1,1,6,NULL),
-(26,3,0,1,6,NULL),
-(27,4,0,1,6,NULL),
-(28,3,1,1,8,NULL),
-(29,4,0,1,8,NULL),
-(30,2,1,1,9,NULL),
-(31,1,0,1,9,NULL),
-(32,5,0,1,5,NULL),
-(33,6,0,1,5,NULL),
-(34,7,1,1,5,NULL),
-(35,8,1,1,5,NULL),
-(36,9,1,1,5,NULL),
-(37,11,1,1,5,NULL),
-(38,12,1,1,5,NULL),
-(39,13,1,1,5,NULL),
-(40,14,1,1,5,NULL),
-(41,15,1,1,5,NULL),
-(42,16,1,1,5,NULL),
-(43,17,1,1,5,NULL),
-(44,18,1,1,5,NULL),
-(45,19,1,1,5,NULL),
-(46,20,1,1,5,NULL),
-(47,21,1,1,5,NULL),
-(48,22,1,1,5,NULL),
-(49,23,1,1,5,NULL),
-(50,5,1,1,7,NULL),
-(51,6,0,1,7,NULL),
-(52,18,0,1,10,NULL),
-(53,19,0,1,10,NULL),
-(54,20,0,1,10,NULL),
-(55,21,0,1,10,NULL),
-(56,22,0,1,10,NULL),
-(57,23,0,1,10,NULL),
-(58,7,1,1,10,NULL),
-(59,8,1,1,10,NULL),
-(60,9,1,1,10,NULL),
-(61,11,1,1,10,NULL),
-(62,12,1,1,10,NULL),
-(63,13,1,1,10,NULL),
-(64,14,1,1,10,NULL),
-(65,15,1,1,10,NULL),
-(66,16,1,1,10,NULL),
-(67,17,1,1,10,NULL),
-(68,18,1,1,11,NULL),
-(69,19,1,1,11,NULL),
-(70,20,1,1,11,NULL),
-(71,21,0,1,11,NULL),
-(72,22,0,1,11,NULL),
-(73,23,0,1,11,NULL),
-(74,21,1,1,12,NULL),
-(75,22,1,1,12,NULL),
-(76,23,0,1,12,NULL),
-(77,21,1,1,13,NULL),
-(78,22,0,1,13,NULL),
-(79,18,1,1,14,NULL),
-(80,19,1,1,14,NULL),
-(81,20,0,1,14,NULL),
-(82,18,1,1,15,NULL),
-(83,19,0,1,15,NULL),
-(84,7,1,1,16,NULL),
-(85,8,1,1,16,NULL),
-(86,9,1,1,16,NULL),
-(87,11,1,1,16,NULL),
-(88,12,1,1,16,NULL),
-(89,13,1,1,16,NULL),
-(90,14,1,1,16,NULL),
-(91,15,0,1,16,NULL),
-(92,16,0,1,16,NULL),
-(93,17,0,1,16,NULL),
-(94,15,1,1,17,NULL),
-(95,16,1,1,17,NULL),
-(96,17,0,1,17,NULL),
-(97,15,1,1,18,NULL),
-(98,16,0,1,18,NULL),
-(99,7,1,1,19,NULL),
-(100,8,1,1,19,NULL),
-(101,9,0,1,19,NULL),
-(102,11,0,1,19,NULL),
-(103,12,0,1,10,NULL),
-(104,13,0,1,19,NULL),
-(105,14,0,1,19,NULL),
-(106,7,1,1,20,NULL),
-(107,8,0,1,20,NULL),
-(108,9,1,1,21,NULL),
-(109,11,1,1,21,NULL),
-(110,12,0,1,21,NULL),
-(111,13,0,1,21,NULL),
-(112,14,0,1,21,NULL),
-(113,15,0,1,21,NULL),
-(114,16,0,1,21,NULL),
-(115,17,0,1,21,NULL),
-(116,9,1,1,24,NULL),
-(117,11,0,1,24,NULL),
-(118,12,1,1,22,NULL),
-(119,14,1,1,22,NULL),
-(120,13,0,1,21,NULL),
-(121,12,1,1,23,NULL),
-(122,14,0,1,23,NULL);
-/*!40000 ALTER TABLE `variant_excludes` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `variant_questions`
---
-
-DROP TABLE IF EXISTS `variant_questions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `variant_questions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `processes_id` int(11) NOT NULL,
-  `question` tinytext NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `variant_question_processes` (`processes_id`),
-  CONSTRAINT `variant_question_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `variant_questions`
---
-
-LOCK TABLES `variant_questions` WRITE;
-/*!40000 ALTER TABLE `variant_questions` DISABLE KEYS */;
-INSERT INTO `variant_questions` VALUES
-(1,1,'Fügefräsen?'),
-(2,1,'Heißluft?'),
-(3,1,'Eckenkopieren?'),
-(4,1,'Leimfugenziehen?'),
-(5,1,'Laser?'),
-(6,1,'Bündigfräsen?'),
-(7,1,'Nutfräsen?'),
-(8,1,'Eckschwabbeln?'),
-(9,1,'Universalfräsen?'),
-(10,1,'Schwabbeln?');
-/*!40000 ALTER TABLE `variant_questions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -890,4 +644,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-05-03 12:56:08
+-- Dump completed on 2022-06-09  9:01:40

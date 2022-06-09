@@ -47,18 +47,6 @@ class VariantComponents(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variant_components']
 
 
-class VariantQuestions(db.Model, Serializable):
-    __table__ = db.Model.metadata.tables['variant_questions']
-
-
-class VariantTreeQuestions(db.Model, Serializable):
-    __table__ = db.Model.metadata.tables['tree_questions']
-
-
-class VariantExcludes(db.Model, Serializable):
-    __table__ = db.Model.metadata.tables['variant_excludes']
-
-
 class VariantSelection(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variant_selection']
 
