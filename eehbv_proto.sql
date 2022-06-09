@@ -192,7 +192,8 @@ CREATE TABLE `components` (
   `view_name` varchar(30) NOT NULL,
   `api_name` varchar(15) NOT NULL,
   `is_aggregate` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_api_name` (`api_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -344,6 +345,7 @@ CREATE TABLE `process_parameters` (
   `processes_id` int(11) NOT NULL,
   `name` varchar(30) NOT NULL,
   `unit` varchar(15) NOT NULL,
+  `general` tinyint(1) NOT NULL,
   `variable_name` varchar(20) NOT NULL,
   `material_properties_id` int(11) DEFAULT NULL,
   `restricting` tinyint(1) NOT NULL,
@@ -357,7 +359,7 @@ CREATE TABLE `process_parameters` (
   KEY `process_parameters_properties` (`material_properties_id`),
   CONSTRAINT `process_parameters_properties` FOREIGN KEY (`material_properties_id`) REFERENCES `material_properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `processes_parameters` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -367,11 +369,12 @@ CREATE TABLE `process_parameters` (
 LOCK TABLES `process_parameters` WRITE;
 /*!40000 ALTER TABLE `process_parameters` DISABLE KEYS */;
 INSERT INTO `process_parameters` VALUES
-(1,1,'Werkstückdicke','mm','p_part_width',NULL,0,0,NULL,NULL,NULL,NULL),
-(2,1,'Werkstücklänge','cm','p_part_length',NULL,0,0,NULL,NULL,NULL,NULL),
-(3,1,'Fräsbreite','mm','p_milling_width',NULL,0,0,NULL,NULL,NULL,NULL),
-(4,1,'Frästiefe','mm','p_milling_depth',NULL,0,0,NULL,NULL,NULL,NULL),
-(5,1,'Spez. Schnittkraft','N/mm^1,5','p_k_c05',2,0,0,NULL,NULL,NULL,NULL);
+(1,1,'Werkstückdicke','mm',0,'p_part_width',NULL,0,0,NULL,NULL,NULL,NULL),
+(2,1,'Werkstücklänge','cm',0,'p_part_length',NULL,0,0,NULL,NULL,NULL,NULL),
+(3,1,'Fräsbreite','mm',0,'p_milling_width',NULL,0,0,NULL,NULL,NULL,NULL),
+(4,1,'Frästiefe','mm',0,'p_milling_depth',NULL,0,0,NULL,NULL,NULL,NULL),
+(5,1,'Spez. Schnittkraft','N/mm^1,5',0,'p_k_c05',2,0,0,NULL,NULL,NULL,NULL),
+(6,1,'Zähne Kappsäge','',1,'p_teeth_clipping',NULL,0,0,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `process_parameters` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -399,7 +402,7 @@ CREATE TABLE `process_solvers` (
 LOCK TABLES `process_solvers` WRITE;
 /*!40000 ALTER TABLE `process_solvers` DISABLE KEYS */;
 INSERT INTO `process_solvers` VALUES
-(1,1,'from math import *\r\nimport copy\r\n\r\n\r\nindices = {}\r\nopt_indices = {}\r\nopt_value = -1\r\n\r\n\r\ndef call_solver(target_func, tf_sig, model, data):\r\n    # sorting: occurrence of component properties in conditions can lead to earlier termination of solution branch\r\n    components = sorted(model[\'components\'], key=sort_components_by_conditions(model[\'conditions\']), reverse=True)\r\n    wander_tree(model, components, {}, target_func, tf_sig, data)\r\n    print(\'OPT\')\r\n    print(opt_indices)\r\n    print(opt_value)\r\n    return opt_indices, opt_value, \'no special remarks\'\r\n\r\n\r\ndef wander_tree(model, components, combination, tf, tf_sig, data):\r\n    current_comp_type = data[components[0][\'component_api_name\']]\r\n    global indices\r\n    for index, comp in enumerate(current_comp_type):\r\n        var_name = components[0][\'variable_name\']\r\n        indices[var_name] = index\r\n        new_combination = {**combination, var_name: comp}\r\n        if conditions_satisfied(model, new_combination, data):\r\n            if len(components) > 1:\r\n                new_components = copy.copy(components)\r\n                new_components.pop(0)\r\n                wander_tree(model, new_components, new_combination, tf, tf_sig, data)\r\n            else:\r\n                eval_target_func(model, new_combination, tf, tf_sig, data)\r\n\r\n\r\ndef conditions_satisfied(model, combination, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    for parameter_set in model[\'process_parameters\']:\r\n        for parameter_key in parameter_set.keys():\r\n            exec(parameter_key + \' = parameter_set[\"\' + parameter_key + \'\"]\')\r\n        for cond in model[\'conditions\']:\r\n            try:\r\n                result = eval(cond)\r\n                if not result:\r\n                    return False\r\n            except NameError as ex:     # conditions with missing vars have to be evaluated at a deeper level\r\n                print(\'Condition parameter not defined: \' + ex.args[0])\r\n    # ToDo: check implicit conditions\r\n    return True\r\n\r\n\r\ndef eval_target_func(model, combination, target_func, tf_sig, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    global opt_value\r\n    global opt_indices\r\n    global indices\r\n    val = [0]\r\n    weight_sum = [0]\r\n    for parameter_set in model[\'process_parameters\']:\r\n        for pp in parameter_set.keys():\r\n            exec(pp + \' = parameter_set[\"\' + pp + \'\"]\')\r\n        exec(\'weight_sum[0] = weight_sum[0] + portion\')\r\n        exec(\'val[0] = val[0] + portion * \' + tf_sig)\r\n    val[0] = val[0] / weight_sum[0]\r\n    if val[0] > -1 and (val[0] < opt_value or opt_value == -1):\r\n        opt_value = val[0]\r\n        opt_indices = {**indices}\r\n\r\n\r\ndef sort_components_by_conditions(conditions):\r\n    def count_component_occurrence_in_conditions(comp, cond=conditions):\r\n        count = 0\r\n        for c in cond:\r\n            tokens = c.replace(\'[\', \' \').split()\r\n            for token in tokens:\r\n                if comp[\'variable_name\'] == token:\r\n                    count += 1\r\n        return count\r\n    return count_component_occurrence_in_conditions\r\n');
+(1,1,'from math import *\r\nimport copy\r\n\r\n\r\nindices = {}\r\nopt_indices = {}\r\nopt_value = -1\r\n\r\n\r\ndef call_solver(target_func, tf_sig, model, data):\r\n    # sorting: occurrence of component properties in conditions can lead to earlier termination of solution branch\r\n    components = sorted(model[\'components\'], key=sort_components_by_conditions(model[\'conditions\']), reverse=True)\r\n    wander_tree(model, components, {}, target_func, tf_sig, data)\r\n    print(\'OPT\')\r\n    print(opt_indices)\r\n    print(opt_value)\r\n    return opt_indices, opt_value, \'no special remarks\'\r\n\r\n\r\ndef wander_tree(model, components, combination, tf, tf_sig, data):\r\n    current_comp_type = data[components[0][\'component_api_name\']]\r\n    global indices\r\n    for index, comp in enumerate(current_comp_type):\r\n        var_name = components[0][\'variable_name\']\r\n        indices[var_name] = index\r\n        new_combination = {**combination, var_name: comp}\r\n        if conditions_satisfied(model, new_combination, data):\r\n            if len(components) > 1:\r\n                new_components = copy.copy(components)\r\n                new_components.pop(0)\r\n                wander_tree(model, new_components, new_combination, tf, tf_sig, data)\r\n            else:\r\n                eval_target_func(model, new_combination, tf, tf_sig, data)\r\n\r\n\r\ndef conditions_satisfied(model, combination, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    for parameter_set in model[\'process_profiles\']:\r\n        for parameter_key in parameter_set.keys():\r\n            exec(parameter_key + \' = parameter_set[\"\' + parameter_key + \'\"]\')\r\n        for cond in model[\'conditions\']:\r\n            try:\r\n                result = eval(cond)\r\n                if not result:\r\n                    return False\r\n            except NameError as ex:     # conditions with missing vars have to be evaluated at a deeper level\r\n                print(\'Condition parameter not defined: \' + ex.args[0])\r\n    # ToDo: check implicit conditions\r\n    return True\r\n\r\n\r\ndef eval_target_func(model, combination, target_func, tf_sig, data):\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    global opt_value\r\n    global opt_indices\r\n    global indices\r\n    val = [0]\r\n    weight_sum = [0]\r\n    for parameter_set in model[\'process_profiles\']:\r\n        for pp in parameter_set.keys():\r\n            exec(pp + \' = parameter_set[\"\' + pp + \'\"]\')\r\n        exec(\'weight_sum[0] = weight_sum[0] + portion\')\r\n        exec(\'val[0] = val[0] + portion * \' + tf_sig)\r\n    val[0] = val[0] / weight_sum[0]\r\n    if val[0] > -1 and (val[0] < opt_value or opt_value == -1):\r\n        opt_value = val[0]\r\n        opt_indices = {**indices}\r\n\r\n\r\ndef sort_components_by_conditions(conditions):\r\n    def count_component_occurrence_in_conditions(comp, cond=conditions):\r\n        count = 0\r\n        for c in cond:\r\n            tokens = c.replace(\'[\', \' \').split()\r\n            for token in tokens:\r\n                if comp[\'variable_name\'] == token:\r\n                    count += 1\r\n        return count\r\n    return count_component_occurrence_in_conditions\r\n');
 /*!40000 ALTER TABLE `process_solvers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -542,7 +545,9 @@ CREATE TABLE `variant_components` (
   `description` varchar(40) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `variant_components_variants` (`variants_id`),
-  CONSTRAINT `variant_components` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `variant_components_api_name` (`component_api_name`),
+  CONSTRAINT `variant_components` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `variant_components_api_name` FOREIGN KEY (`component_api_name`) REFERENCES `components` (`api_name`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -644,4 +649,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-09  9:01:40
+-- Dump completed on 2022-06-09 14:02:01

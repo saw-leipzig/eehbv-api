@@ -38,7 +38,7 @@ def conditions_satisfied(model, combination, data):
         exec(data_key + ' = data["' + data_key + '"]')
     for comb_key in combination.keys():
         exec(comb_key + ' = combination["' + comb_key + '"]')
-    for parameter_set in model['process_parameters']:
+    for parameter_set in model['process_profiles']:
         for parameter_key in parameter_set.keys():
             exec(parameter_key + ' = parameter_set["' + parameter_key + '"]')
         for cond in model['conditions']:
@@ -62,7 +62,7 @@ def eval_target_func(model, combination, target_func, tf_sig, data):
     global indices
     val = [0]
     weight_sum = [0]
-    for parameter_set in model['process_parameters']:
+    for parameter_set in model['process_profiles']:
         for pp in parameter_set.keys():
             exec(pp + ' = parameter_set["' + pp + '"]')
         exec('weight_sum[0] = weight_sum[0] + portion')

@@ -101,7 +101,8 @@ def load_data_and_solve(cId, process, model, path):
     for v in variants:
         target_func = targetFunctions.get_func(cId, v.id, process, v)
         signature = get_signature(v.target_func)
-        variant_model = {'process_parameters': model['process_parameters'],
+        variant_model = {'process_profiles': model['process_profiles'],
+                         'general_parameters': model['general_parameters'],
                          'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
                              'conditions'],
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
