@@ -150,7 +150,8 @@ def create_models():
 def create_new_component_table(table_name, api_name, columns):
     columns = [Column('id', INTEGER, primary_key=True),
                *[Column(column["column_name"],
-                        VARCHAR(40) if column["type"] == 'VARCHAR' else FLOAT if column["type"] == 'DOUBLE' else BOOLEAN)
+                        VARCHAR(40) if column["type"] == 'VARCHAR' else FLOAT if column[
+                                                                                     "type"] == 'DOUBLE' else BOOLEAN)
                  for column in columns]]
     table = Table(table_name, db.metadata, *columns)
     table_creation_sql = CreateTable(table)
@@ -195,6 +196,25 @@ class TargetFuncWrapper:
                 raise Exception('Target function not defined')
             self.target_functions[pId][vId] = import_code(variant.target_func, process + '_' + str(vId))
         return self.target_functions[pId][vId].target_func
+
+
+class LossFuncWrapper:
+    def __init__(self):
+        self.loss_functions = {}
+
+    def get_functions(self, process, variant):
+        missing_functions = []
+        for lf in variant.variants_loss_functions:
+            if lf.loss_functions_id not in self.loss_functions:
+                missing_functions.append(lf.loss_functions_id)
+        if len(missing_functions) > 0:
+            lfs = LossFunctions.query. \
+                filter(LossFunctions.id.in_(missing_functions)).all()
+            for lf in lfs:
+                if lf.func is None or lf.func == '':
+                    raise Exception('Target function not defined')
+                self.loss_functions[lf.id] = import_code(lf.func, process + '_id_' + str(lf.id))
+        return {lf.position: self.loss_functions[lf.loss_functions_id].target_func for lf in variant.variants_loss_functions}
 
 
 create_models()

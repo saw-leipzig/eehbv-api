@@ -1,7 +1,7 @@
 import json
 from flask import jsonify, request, Response
 from . import api
-from ..models import Processes, ProcessParameters, InfoTexts, Variants, VariantSelection, ProblemType, Permission
+from ..models import Processes, ProcessParameters, LossFunctions, VariantsLossFunctions, InfoTexts, Variants, VariantSelection, ProblemType, Permission
 from app import db
 from ..decorators import permission_required
 

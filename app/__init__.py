@@ -26,6 +26,7 @@ def create_app(config_name):
     db.metadata.tables['variants_loss_functions'].append_constraint(ForeignKeyConstraint(['loss_functions_id'], ['loss_functions.id']))
     db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['glossary_id'], ['glossary.id']))
     db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
+    db.metadata.tables['loss_functions'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     # db.metadata.tables['processes'].__table__.columns.pp = db.append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     print(db.metadata.tables)
 

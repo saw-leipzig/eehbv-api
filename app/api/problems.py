@@ -4,7 +4,7 @@ import threading
 from datetime import datetime
 from flask import request, current_app, Response
 
-from ..models import ProblemWrapper, TargetFuncWrapper, Variants, components
+from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, LossFunctions, components
 from . import api
 
 FINISHED = '/finished'
@@ -12,6 +12,7 @@ FAILED = '/failed'
 
 problems = ProblemWrapper()
 targetFunctions = TargetFuncWrapper()
+lossFunctions = LossFuncWrapper()
 
 
 @api.route('/problems/result/<timestamp>', methods=['GET'])
@@ -71,12 +72,13 @@ def end_solver(status_file):
 
 def format_result(result, name, combination, info):
     # ToDo: Include Infos about variant, info, component's description ...
-    lines = '<p>'\
-            + '</p><p>'.\
-                join(['<em>{type}</em>: {man} - {model}'.format(type=item[0], man=item[1]['manufacturer'], model=item[1]['name'])
-                      for item in combination.items()])\
+    lines = '<p>' \
+            + '</p><p>'. \
+                join(
+        ['<em>{type}</em>: {man} - {model}'.format(type=item[0], man=item[1]['manufacturer'], model=item[1]['name'])
+         for item in combination.items()]) \
             + '</p>'
-    return '<h2>{name}</h2><div>Ergebnis: {res}</div><div>{lines}</div><div>{info}</div>'.\
+    return '<h2>{name}</h2><div>Ergebnis: {res}</div><div>{lines}</div><div>{info}</div>'. \
         format(name=name,
                res=result,
                lines=lines,
@@ -100,13 +102,17 @@ def load_data_and_solve(cId, process, model, path):
     component_keys = ['component_api_name', 'variable_name', 'description']
     for v in variants:
         target_func = targetFunctions.get_func(cId, v.id, process, v)
+        loss_functions = lossFunctions.get_functions(process, v)
         signature = get_signature(v.target_func)
         variant_model = {'process_profiles': model['process_profiles'],
                          'general_parameters': model['general_parameters'],
                          'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
                              'conditions'],
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
-                                        sorted(v.variant_components, key=lambda cc: cc.position)]}
+                                        sorted(v.variant_components, key=lambda cc: cc.position)],
+                         'loss_functions': [{**lf.as_dict()} for lf in
+                                            sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
+                         }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
         indices, variant_result, info = \
             problems.call_solver(cId, process, target_func, signature, variant_model,
