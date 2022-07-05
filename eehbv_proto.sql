@@ -306,6 +306,29 @@ INSERT INTO `info_texts` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `loss_functions`
+--
+
+DROP TABLE IF EXISTS `loss_functions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `loss_functions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `func` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `loss_functions`
+--
+
+LOCK TABLES `loss_functions` WRITE;
+/*!40000 ALTER TABLE `loss_functions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `loss_functions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `material_properties`
 --
 
@@ -639,6 +662,39 @@ INSERT INTO `variants` VALUES
 (23,1,'Laser mit Bündigfräser und Eckschwabbel','');
 /*!40000 ALTER TABLE `variants` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `variants_loss_functions`
+--
+
+DROP TABLE IF EXISTS `variants_loss_functions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `variants_loss_functions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `variants_id` int(11) NOT NULL,
+  `loss_functions_id` int(11) NOT NULL,
+  `function_call` text NOT NULL,
+  `variable_name` varchar(20) NOT NULL,
+  `description` int(40) NOT NULL,
+  `eval_after_position` int(11) NOT NULL,
+  `position` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `variants_variants_loss_functions` (`variants_id`),
+  KEY `loss_functions_variants_loss_functions` (`loss_functions_id`),
+  CONSTRAINT `loss_functions_variants_loss_functions` FOREIGN KEY (`loss_functions_id`) REFERENCES `loss_functions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `variants_variants_loss_functions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `variants_loss_functions`
+--
+
+LOCK TABLES `variants_loss_functions` WRITE;
+/*!40000 ALTER TABLE `variants_loss_functions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `variants_loss_functions` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -649,4 +705,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-06-09 14:02:01
+-- Dump completed on 2022-07-05 12:36:06

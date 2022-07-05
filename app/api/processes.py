@@ -51,7 +51,11 @@ def create_process():
 @api.route('/processes/<int:cId>/variants')
 def get_variants(cId):
     variants = Variants.query.filter_by(processes_id=cId)
-    return jsonify({'variants': [{**variant.as_dict(), 'components': [c.as_dict() for c in variant.variant_components]} for variant in variants]})
+    return jsonify(
+        {'variants': [{**variant.as_dict(),
+                       'components': [c.as_dict() for c in variant.variant_components],
+                       'loss_functions': [lf.as_dict() for lf in variant.variants_loss_functions]}
+                      for variant in variants]})
 
 
 @api.route('/processes/<int:cId>/info_texts')
