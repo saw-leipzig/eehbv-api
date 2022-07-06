@@ -7,6 +7,8 @@ from sqlalchemy.schema import CreateTable
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
+TARGET_FUNC = 'target_func'
+
 
 class Serializable:
     def as_dict(self):
@@ -211,10 +213,14 @@ class LossFuncWrapper:
             lfs = LossFunctions.query. \
                 filter(LossFunctions.id.in_(missing_functions)).all()
             for lf in lfs:
-                if lf.func is None or lf.func == '':
+                if lf.func is None or TARGET_FUNC not in lf.func:
                     raise Exception('Target function not defined')
-                self.loss_functions[lf.id] = import_code(lf.func, process + '_id_' + str(lf.id))
-        return {lf.position: self.loss_functions[lf.loss_functions_id].target_func for lf in variant.variants_loss_functions}
+                code = lf.func.replace(TARGET_FUNC, TARGET_FUNC + '_' + str(lf.id))
+                self.loss_functions[lf.id] = import_code(code, process + '_id_' + str(lf.id))
+#        return {lf.position: self.loss_functions[lf.loss_functions_id].target_func
+#                for lf in variant.variants_loss_functions}
+        return {lf.position: getattr(self.loss_functions[lf.loss_functions_id], TARGET_FUNC + '_' + str(lf.loss_functions_id))
+                for lf in variant.variants_loss_functions}
 
 
 create_models()

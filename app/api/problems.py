@@ -4,7 +4,8 @@ import threading
 from datetime import datetime
 from flask import request, current_app, Response
 
-from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, LossFunctions, components
+from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, LossFunctions, components, \
+    TARGET_FUNC
 from . import api
 
 FINISHED = '/finished'
@@ -103,15 +104,24 @@ def load_data_and_solve(cId, process, model, path):
     for v in variants:
         target_func = targetFunctions.get_func(cId, v.id, process, v)
         loss_functions = lossFunctions.get_functions(process, v)
+        print(loss_functions)
         signature = get_signature(v.target_func)
+        lf_model = [{'description': lf.description,
+                     'eval_after_position': lf.eval_after_position,
+                     'function_call': lf.variable_name + ' = ' +
+                                      lf.function_call.replace(TARGET_FUNC,
+                                                               TARGET_FUNC + '_' + str(lf.loss_functions_id)),
+                     'position': lf.position,   # necessary? information provided by order!
+                     'variable_name': lf.variable_name}
+                    for lf in
+                    sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
         variant_model = {'process_profiles': model['process_profiles'],
                          'general_parameters': model['general_parameters'],
                          'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
                              'conditions'],
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
                                         sorted(v.variant_components, key=lambda cc: cc.position)],
-                         'loss_functions': [{**lf.as_dict()} for lf in
-                                            sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
+                         'loss_functions': lf_model
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
         indices, variant_result, info = \
@@ -138,7 +148,7 @@ def load_data(variants):
 
 def get_signature(target_func):
     for line in target_func.splitlines():
-        if line.startswith('def target_func('):
+        if line.startswith('def ' + TARGET_FUNC + '('):
             start = line.index('t')
             end = line.index(')')
             return line[start:end + 1]
