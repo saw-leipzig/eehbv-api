@@ -1,10 +1,11 @@
 import json
 import os
 import threading
+# import solver
 from datetime import datetime
 from flask import request, current_app, Response
 
-from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, LossFunctions, components, \
+from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, components, \
     TARGET_FUNC
 from . import api
 
@@ -108,15 +109,14 @@ def load_data_and_solve(cId, process, model, path):
         signature = get_signature(v.target_func)
         lf_model = [{'description': lf.description,
                      'eval_after_position': lf.eval_after_position,
-                     'function_call': lf.variable_name + ' = ' +
-                                      lf.function_call.replace(TARGET_FUNC,
-                                                               TARGET_FUNC + '_' + str(lf.loss_functions_id)),
-                     'position': lf.position,   # necessary? information provided by order!
+                     'function_call': TARGET_FUNC + '_' + str(lf.loss_functions_id) + lf.parameter_list,
+                     'position': lf.position,
                      'variable_name': lf.variable_name}
                     for lf in
                     sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
         variant_model = {'process_profiles': model['process_profiles'],
                          'general_parameters': model['general_parameters'],
+                         'result_settings': model['result_settings'],
                          'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
                              'conditions'],
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
@@ -124,9 +124,13 @@ def load_data_and_solve(cId, process, model, path):
                          'loss_functions': lf_model
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
-        indices, variant_result, info = \
-            problems.call_solver(cId, process, target_func, signature, variant_model,
-                                 {key: data[key] for key in variant_comp_types})  # pass only necessary data
+#        indices, variant_result, opts, cost_opts, info = solver.call_solver(
+#            target_func, loss_functions, signature, variant_model,
+#            {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        indices, variant_result, opts, cost_opts, info = problems.call_solver(
+            cId, process, target_func, loss_functions, signature, variant_model,
+            {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        print(opts)
         # ToDo: extract model/manufacturer from index
         opt_combination = get_component_names_by_indices(indices, variant_model['components'], names)
         persist_variant(v.name, variant_result, opt_combination, info, path)
