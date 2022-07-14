@@ -11,6 +11,7 @@ from . import api
 
 FINISHED = '/finished'
 FAILED = '/failed'
+RESULT = '/result.json'
 
 problems = ProblemWrapper()
 targetFunctions = TargetFuncWrapper()
@@ -22,9 +23,9 @@ def get_result(timestamp):
     path = current_app.config['DATA_PATH'] + '/' + timestamp
     if not (os.path.exists(path + FAILED)) and not (os.path.exists(path + FINISHED)):
         return Response('{"status": "pending"}', 200, mimetype='application/json')
-    with open(path + '/result.html', 'r') as f:
+    with open(path + RESULT, 'r') as f:
         result = f.read()
-    return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='text/plain')
+    return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='application/json')
 
 
 @api.route('/problems/<int:cId>', methods=['POST'])
@@ -38,7 +39,7 @@ def handle_problem(cId):
         json.dump(model, f)
     try:
         solve(cId, model['process']['api_name'], model, path)
-    except:
+    except Exception:
         return Response('Wrong arguments', 400, mimetype='text/plain')
     return Response(date_time, 202, mimetype='text/plain',
                     headers={'Content-Location': '/problems/result/' + date_time})
@@ -63,32 +64,40 @@ def persist_outcome(result_file, msg, status_file=None):
         end_solver(status_file)
 
 
-def persist_variant(variant_name, result, combination, info, path):
-    res_str = format_result(result, variant_name, combination, info)
-    persist_outcome(path, res_str)
-
-
 def end_solver(status_file):
     open(status_file, 'a').close()
 
 
-def format_result(result, name, combination, info):
-    # ToDo: Include Infos about variant, info, component's description ...
-    lines = '<p>' \
-            + '</p><p>'. \
-                join(
-        ['<em>{type}</em>: {man} - {model}'.format(type=item[0], man=item[1]['manufacturer'], model=item[1]['name'])
-         for item in combination.items()]) \
-            + '</p>'
-    return '<h2>{name}</h2><div>Ergebnis: {res}</div><div>{lines}</div><div>{info}</div>'. \
-        format(name=name,
-               res=result,
-               lines=lines,
-               info=info)
+def persist_variant_json(result_file, res, status_file=None):
+    if os.path.exists(result_file):
+        f = open(result_file)
+        prev = json.load(f)
+        f.close()
+        with open(result_file, 'w') as f:
+            json.dump(prev['result'].apppend(res), f)
+    else:
+        with open(result_file, 'w') as f:
+            json.dump({'status': '...', 'result': [res]}, f)
+    if status_file is not None:
+        end_solver(status_file)
+
+
+def persist_variant_opts(variant_name, opts, cost_opts, info, path):
+    res_dict = wrap_result(variant_name, opts, cost_opts, info)
+    persist_variant_json(path, res_dict)
+
+
+def wrap_result(variant_name, opts, cost_opts, info):
+    return {
+        'variant': variant_name,
+        'opts': opts,
+        'cost_opts': cost_opts,
+        'info': info
+    }
 
 
 def threaded_solve(cApp, cId, process, model, path):
-    result_file = path + '/result.html'
+    result_file = path + RESULT
     try:
         with cApp.app_context():  # provide context for this thread
             load_data_and_solve(cId, process, model, result_file)
@@ -124,22 +133,19 @@ def load_data_and_solve(cId, process, model, path):
                          'loss_functions': lf_model
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
-#        indices, variant_result, opts, cost_opts, info = solver.call_solver(
-#            target_func, loss_functions, signature, variant_model,
-#            {key: data[key] for key in variant_comp_types})  # pass only necessary data
-        indices, variant_result, opts, cost_opts, info = problems.call_solver(
-            cId, process, target_func, loss_functions, signature, variant_model,
-            {key: data[key] for key in variant_comp_types})  # pass only necessary data
-        print('OPTS')
-        print(opts)
-        # ToDo: extract model/manufacturer from index
-        opt_combination = get_component_names_by_indices(indices, variant_model['components'], names)
+#        opts, cost_opts, info = solver.call_solver(
+#                    loss_functions, variant_model, {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        opts, cost_opts, info = problems.call_solver(cId,
+                                                     process, loss_functions, variant_model,
+                                                     {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        # extract model/manufacturer from index
         for opt in opts:
             opt['indices'] = get_component_names_by_indices(opt['indices'], variant_model['components'], names)
         for cost_opt in cost_opts:
-            cost_opt['indices'] = get_component_names_by_indices(cost_opt['indices'], variant_model['components'], names)
+            cost_opt['indices'] = get_component_names_by_indices(cost_opt['indices'], variant_model['components'],
+                                                                 names)
         print(opts)
-        persist_variant(v.name, variant_result, opt_combination, info, path)
+        persist_variant_opts(v.name, opts, cost_opts, info, path)
 
 
 def load_data(variants):

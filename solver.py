@@ -4,31 +4,27 @@ import copy
 current_losses = {}
 weighted_losses = {}
 indices = {}
-opt_indices = {}
-opt_value = -1
 opts = []
 cost_opts = []
 
 
-def call_solver(target_func, loss_func, tf_sig, model, data):
+def call_solver(loss_func, model, data):
     # ToDo: as class
-    global current_losses, weighted_losses, indices, opt_indices, opt_value, opts, cost_opts
+    global current_losses, weighted_losses, indices, opts, cost_opts
     # reset -  problematic for several parallel requests
     current_losses = {}
     weighted_losses = {}
     indices = {}
-    opt_indices = {}
-    opt_value = -1
     opts = []
     cost_opts = []
 
     components = model['components']
     # ToDo: eval dependent variables!
-    wander_tree(1, model, components, {}, target_func, loss_func, tf_sig, data)
-    return opt_indices, opt_value, opts, cost_opts, 'no special remarks'
+    wander_tree(1, model, components, {}, loss_func, data)
+    return opts, cost_opts, 'no special remarks'
 
 
-def wander_tree(depth, model, components, combination, tf, lfs, tf_sig, data):
+def wander_tree(depth, model, components, combination, lfs, data):
     current_comp_type = data[components[0]['component_api_name']]
     global indices
 #    print('wander_tree - ' + str(depth))
@@ -43,9 +39,9 @@ def wander_tree(depth, model, components, combination, tf, lfs, tf_sig, data):
             if len(components) > 1:
                 new_components = copy.copy(components)
                 new_components.pop(0)
-                wander_tree(depth + 1, model, new_components, new_combination, tf, lfs, tf_sig, data)
+                wander_tree(depth + 1, model, new_components, new_combination, lfs, data)
             else:
-                eval_target_func(model, new_combination, tf, tf_sig, data)
+                summarize_and_check_results(model, new_combination)
 
 
 def update_losses(data, model, combination, lfs, depth):
@@ -105,7 +101,7 @@ def conditions_satisfied(model, combination, data):
     return True
 
 
-def eval_target_func(model, combination, target_func, tf_sig, data):
+def summarize_and_check_results(model, combination):
     # new part
     global current_losses
     total = sum_losses(model)
@@ -114,27 +110,6 @@ def eval_target_func(model, combination, target_func, tf_sig, data):
         'exec'] else None
     # sort current combination in optimal solutions
     update_opts(model, total, acquisition_costs)
-    # old part
-    # noinspection DuplicatedCode
-    for data_key in data.keys():
-        exec(data_key + ' = data["' + data_key + '"]')
-    for comb_key in combination.keys():
-        exec(comb_key + ' = combination["' + comb_key + '"]')
-    for general_key in model['general_parameters']:
-        exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
-    global opt_value
-    global opt_indices
-    global indices
-    val = [0]
-    for parameter_set in model['process_profiles']:
-        for pp in parameter_set.keys():
-            exec(pp + ' = parameter_set["' + pp + '"]')
-        exec('val[0] = val[0] + portion * ' + tf_sig)
-    # interpret portion as hours
-    # val[0] = val[0] * kw_price
-    if val[0] > -1 and (val[0] < opt_value or opt_value == -1):
-        opt_value = val[0]
-        opt_indices = {**indices}
 
 
 def sum_losses(model):

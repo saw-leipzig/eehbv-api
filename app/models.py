@@ -176,14 +176,14 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, cId, process, tf, lf, sig, model, data):
+    def call_solver(self, cId, process, lf, model, data):
         if cId not in self.problems:
             p = ProblemType.query.filter_by(processes_id=cId).first()
             if p is None:
                 raise Exception('Problem not defined')
             self.problems[cId] = import_code(p.code, process)
         # time.sleep(16)  # for testing polling only
-        return self.problems[cId].call_solver(tf, lf, sig, model, data)
+        return self.problems[cId].call_solver(lf, model, data)
 
 
 class TargetFuncWrapper:
