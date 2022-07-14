@@ -25,16 +25,13 @@ def call_solver(target_func, loss_func, tf_sig, model, data):
     components = model['components']
     # ToDo: eval dependent variables!
     wander_tree(1, model, components, {}, target_func, loss_func, tf_sig, data)
-    print('OPT')
-    print(opt_indices)
-    print(opt_value)
     return opt_indices, opt_value, opts, cost_opts, 'no special remarks'
 
 
 def wander_tree(depth, model, components, combination, tf, lfs, tf_sig, data):
     current_comp_type = data[components[0]['component_api_name']]
     global indices
-    print('wander_tree - ' + str(depth))
+#    print('wander_tree - ' + str(depth))
     # select new component
     for index, comp in enumerate(current_comp_type):
         var_name = components[0]['variable_name']
@@ -111,7 +108,6 @@ def conditions_satisfied(model, combination, data):
 def eval_target_func(model, combination, target_func, tf_sig, data):
     # new part
     global current_losses
-    print('EVAL_TARGET_FUNC')
     total = sum_losses(model)
     # costs optimization
     acquisition_costs = update_cost_opts(model, combination, total) if model['result_settings']['costs_opt'][
@@ -158,14 +154,16 @@ def update_cost_opts(model, combination, total):
     acquisition_costs = sum(combination['price']) + model['result_settings']['costs_opt']
     energy_costs = total * model['result_settings']['costs_opt']['price_kwh'] * model['result_settings']['costs_opt'][
         'amortization_time']
-    if len(cost_opts) == 0:
-        cost_opts.append(build_cost_opt(model, total, acquisition_costs, energy_costs))
+    inserted = False
     for pos, old_opt in enumerate(cost_opts):
         if old_opt['total_costs'] > acquisition_costs + energy_costs:
             cost_opts.insert(pos, build_cost_opt(model, total, acquisition_costs, energy_costs))
-            if len(cost_opts) > model['result_settings']['n_list']:
+            inserted = True
+            if len(cost_opts) > int(model['result_settings']['n_list']):
                 cost_opts.pop()
             break
+    if len(cost_opts) < int(model['result_settings']['n_list']) and not inserted:
+        cost_opts.append(build_cost_opt(model, total, acquisition_costs, energy_costs))
     return acquisition_costs
 
 
@@ -178,20 +176,21 @@ def build_cost_opt(model, total, acquisition_costs, energy_costs):
             'total': total,
             'partials': {description_from_variable(model, key): weighted_losses[key] for key in
                          weighted_losses.keys()},
-            'indices': indices}
+            'indices': copy.copy(indices)}
 
 
 def update_opts(model, total, acquisition_costs):
     global opts
-    if len(opts) == 0:
-        opts.append(build_opt(model, total, acquisition_costs))
-        return
+    inserted = False
     for pos, old_opt in enumerate(opts):
         if old_opt['total'] > total:
             opts.insert(pos, build_opt(model, total, acquisition_costs))
-            if len(opts) > model['result_settings']['n_list']:
+            inserted = True
+            if len(opts) > int(model['result_settings']['n_list']):
                 opts.pop()
             break
+    if len(opts) < int(model['result_settings']['n_list']) and not inserted:
+        opts.append(build_opt(model, total, acquisition_costs))
 
 
 def build_opt(model, total, acquisition_costs):
@@ -201,7 +200,7 @@ def build_opt(model, total, acquisition_costs):
             'total': total,
             'partials': {description_from_variable(model, key): weighted_losses[key] for key in
                          weighted_losses.keys()},
-            'indices': indices}
+            'indices': copy.copy(indices)}
 
 
 def description_from_variable(model, var):

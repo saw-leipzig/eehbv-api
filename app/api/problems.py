@@ -130,9 +130,15 @@ def load_data_and_solve(cId, process, model, path):
         indices, variant_result, opts, cost_opts, info = problems.call_solver(
             cId, process, target_func, loss_functions, signature, variant_model,
             {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        print('OPTS')
         print(opts)
         # ToDo: extract model/manufacturer from index
         opt_combination = get_component_names_by_indices(indices, variant_model['components'], names)
+        for opt in opts:
+            opt['indices'] = get_component_names_by_indices(opt['indices'], variant_model['components'], names)
+        for cost_opt in cost_opts:
+            cost_opt['indices'] = get_component_names_by_indices(cost_opt['indices'], variant_model['components'], names)
+        print(opts)
         persist_variant(v.name, variant_result, opt_combination, info, path)
 
 
