@@ -173,10 +173,17 @@ def build_opt(model, total, acquisition_costs):
     global indices
     return {'acquisition_costs': acquisition_costs,
             'total': total,
-            'partials': {description_from_variable(model, key): weighted_losses[key] for key in
-                         weighted_losses.keys()},
+            'partials': {val[1]: {'value': val[0], 'aggregate': val[2]} for val in
+                         partial_generator(model)},
             'indices': copy.copy(indices)}
 
 
-def description_from_variable(model, var):
-    return next(lf for lf in model['loss_functions'] if lf['variable_name'] == var)['description']
+def description_and_aggregate_from_variable(model, var):
+    function_by_var = next(lf for lf in model['loss_functions'] if lf['variable_name'] == var)
+    return [function_by_var['description'], function_by_var['aggregate']]
+
+
+def partial_generator(model):
+    global weighted_losses
+    for key in weighted_losses.keys():
+        yield [weighted_losses[key]] + description_and_aggregate_from_variable(model, key)

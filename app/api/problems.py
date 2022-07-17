@@ -1,7 +1,7 @@
 import json
 import os
 import threading
-# import solver
+import solver
 from datetime import datetime
 from flask import request, current_app, Response
 
@@ -112,15 +112,14 @@ def load_data_and_solve(cId, process, model, path):
     names, data = load_data(variants)
     component_keys = ['component_api_name', 'variable_name', 'description']
     for v in variants:
-        target_func = targetFunctions.get_func(cId, v.id, process, v)
         loss_functions = lossFunctions.get_functions(process, v)
         print(loss_functions)
-        signature = get_signature(v.target_func)
         lf_model = [{'description': lf.description,
                      'eval_after_position': lf.eval_after_position,
                      'function_call': TARGET_FUNC + '_' + str(lf.loss_functions_id) + lf.parameter_list,
                      'position': lf.position,
-                     'variable_name': lf.variable_name}
+                     'variable_name': lf.variable_name,
+                     'aggregate': lf.aggregate}
                     for lf in
                     sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
         variant_model = {'process_profiles': model['process_profiles'],
@@ -133,11 +132,11 @@ def load_data_and_solve(cId, process, model, path):
                          'loss_functions': lf_model
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
-#        opts, cost_opts, info = solver.call_solver(
-#                    loss_functions, variant_model, {key: data[key] for key in variant_comp_types})  # pass only necessary data
-        opts, cost_opts, info = problems.call_solver(cId,
-                                                     process, loss_functions, variant_model,
-                                                     {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        opts, cost_opts, info = solver.call_solver(
+                    loss_functions, variant_model, {key: data[key] for key in variant_comp_types})  # pass only necessary data
+#        opts, cost_opts, info = problems.call_solver(cId,
+#                                                     process, loss_functions, variant_model,
+#                                                     {key: data[key] for key in variant_comp_types})  # pass only necessary data
         # extract model/manufacturer from index
         for opt in opts:
             opt['indices'] = get_component_names_by_indices(opt['indices'], variant_model['components'], names)
@@ -160,15 +159,6 @@ def load_data(variants):
                 keys = [k for k in comps[0].as_dict().keys() if k not in ['id', 'name', 'manufacturer']]
                 data[comp_name] = [{key: cc.as_dict()[key] for key in keys} for cc in comps]
     return names, data
-
-
-def get_signature(target_func):
-    for line in target_func.splitlines():
-        if line.startswith('def ' + TARGET_FUNC + '('):
-            start = line.index('t')
-            end = line.index(')')
-            return line[start:end + 1]
-    raise SyntaxError('Definition of target function not found')
 
 
 def get_component_names_by_indices(ids, comps, names):
