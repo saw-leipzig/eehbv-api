@@ -20,6 +20,7 @@ def call_solver(loss_func, model, data):
 
     components = model['components']
     # ToDo: eval dependent variables!
+    update_losses(data, model, {}, loss_func, 0)
     wander_tree(1, model, components, {}, loss_func, data)
     return opts, cost_opts, 'no special remarks'
 
@@ -149,8 +150,8 @@ def build_cost_opt(model, total, acquisition_costs, energy_costs):
             'acquisition_costs': acquisition_costs,
             'energy_costs': energy_costs,
             'total': total,
-            'partials': {description_from_variable(model, key): weighted_losses[key] for key in
-                         weighted_losses.keys()},
+            'partials': {val[1]: {'value': val[0], 'aggregate': val[2]} for val in
+                         partial_generator(model)},
             'indices': copy.copy(indices)}
 
 
