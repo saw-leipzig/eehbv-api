@@ -12,6 +12,7 @@ from . import api
 FINISHED = '/finished'
 FAILED = '/failed'
 RESULT = '/result.json'
+REQUEST = '/problem.json'
 
 problems = ProblemWrapper()
 targetFunctions = TargetFuncWrapper()
@@ -28,6 +29,16 @@ def get_result(timestamp):
     return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='application/json')
 
 
+@api.route('/problems/request/<timestamp>', methods=['GET'])
+def get_request(timestamp):
+    request_file = current_app.config['DATA_PATH'] + '/' + timestamp + REQUEST
+    if not (os.path.exists(request_file)):
+        return Response('{"status": "Request not found"}', 404, mimetype='application/json')
+    with open(request_file, 'r') as f:
+        req = f.read()
+    return Response(req, 200, mimetype='application/json')
+
+
 @api.route('/problems/<int:cId>', methods=['POST'])
 def handle_problem(cId):
     model = request.get_json()
@@ -35,7 +46,7 @@ def handle_problem(cId):
     date_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     path = current_app.config['DATA_PATH'] + '/' + date_time
     os.mkdir(path)
-    with open(path + '/problem.json', 'w') as f:
+    with open(path + REQUEST, 'w') as f:
         json.dump(model, f)
     try:
         solve(cId, model['process']['api_name'], model, path)

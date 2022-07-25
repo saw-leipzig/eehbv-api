@@ -127,9 +127,8 @@ def sum_losses(model):
 def update_cost_opts(model, combination, total):
     global cost_opts
     global indices
-    acquisition_costs = sum(combination['price']) + model['result_settings']['costs_opt']
-    energy_costs = total * model['result_settings']['costs_opt']['price_kwh'] * model['result_settings']['costs_opt'][
-        'amortization_time']
+    acquisition_costs = sum(comp['price'] for comp in combination.values()) + model['result_settings']['costs_opt']['assembly_costs']
+    energy_costs = total * model['result_settings']['costs_opt']['price_kwh'] * model['result_settings']['costs_opt']['amortisation_time']
     inserted = False
     for pos, old_opt in enumerate(cost_opts):
         if old_opt['total_costs'] > acquisition_costs + energy_costs:
