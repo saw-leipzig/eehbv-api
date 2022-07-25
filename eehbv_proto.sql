@@ -169,13 +169,9 @@ CREATE TABLE `component_motors` (
 LOCK TABLES `component_motors` WRITE;
 /*!40000 ALTER TABLE `component_motors` DISABLE KEYS */;
 INSERT INTO `component_motors` VALUES
-(1,'motor1','ref',0,0.75,9.3,11.7,22.8,12.1,1.5,24.7,19.2,29.5,12000),
-(2,'motor2','ref',0,1.1,7.4,9.7,20.5,10,12.3,22.2,16.2,26.3,12000),
-(3,'motor3','ref',0,0,0,0,0,0,0,0,0,0,12000),
-(4,'motor4','ref',0,0,0,0,0,0,0,0,0,0,12000),
-(5,'motor5','ref',0,0,0,0,0,0,0,0,0,0,12000),
-(6,'motor6','ref',0,0,0,0,0,0,0,0,0,0,12000),
-(8,'motor7','ref',0,0,0,0,0,0,0,0,0,0,12000);
+(1,'motor1','ref',500,0.75,9.3,11.7,22.8,12.1,1.5,24.7,19.2,29.5,12000),
+(2,'motor2','ref',800,1.1,7.4,9.7,20.5,10,12.3,22.2,16.2,26.3,12000),
+(3,'motor3','ref',1200,2.2,5.2,7.2,15.5,7.4,9.4,17.9,12.7,21.4,12000);
 /*!40000 ALTER TABLE `component_motors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -377,6 +373,7 @@ CREATE TABLE `process_parameters` (
   `unit` varchar(15) NOT NULL,
   `general` tinyint(1) NOT NULL,
   `variable_name` varchar(20) NOT NULL,
+  `defaults` varchar(30) NOT NULL,
   `material_properties_id` int(11) DEFAULT NULL,
   `restricting` tinyint(1) NOT NULL,
   `dependent` tinyint(1) NOT NULL,
@@ -399,12 +396,12 @@ CREATE TABLE `process_parameters` (
 LOCK TABLES `process_parameters` WRITE;
 /*!40000 ALTER TABLE `process_parameters` DISABLE KEYS */;
 INSERT INTO `process_parameters` VALUES
-(1,1,'Werkstückdicke','mm',0,'p_part_width',NULL,0,0,NULL,NULL,NULL,NULL),
-(2,1,'Werkstücklänge','cm',0,'p_part_length',NULL,0,0,NULL,NULL,NULL,NULL),
-(3,1,'Fräsbreite','mm',0,'p_milling_width',NULL,0,0,NULL,NULL,NULL,NULL),
-(4,1,'Frästiefe','mm',0,'p_milling_depth',NULL,0,0,NULL,NULL,NULL,NULL),
-(5,1,'Spez. Schnittkraft','N/mm^1,5',0,'p_k_c05',2,0,0,NULL,NULL,NULL,NULL),
-(6,1,'Zähne Kappsäge','',1,'p_teeth_clipping',NULL,0,0,NULL,NULL,NULL,NULL);
+(1,1,'Werkstückdicke','mm',0,'p_part_width','',NULL,0,0,NULL,NULL,NULL,NULL),
+(2,1,'Werkstücklänge','cm',0,'p_part_length','',NULL,0,0,NULL,NULL,NULL,NULL),
+(3,1,'Fräsbreite','mm',0,'p_milling_width','',NULL,0,0,NULL,NULL,NULL,NULL),
+(4,1,'Frästiefe','mm',0,'p_milling_depth','',NULL,0,0,NULL,NULL,NULL,NULL),
+(5,1,'Spez. Schnittkraft','N/mm^1,5',0,'p_k_c05','',2,0,0,NULL,NULL,NULL,NULL),
+(6,1,'Zähne Kappsäge','',1,'p_teeth_clipping','12,16,20',NULL,0,0,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `process_parameters` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -717,4 +714,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-17 22:39:39
+-- Dump completed on 2022-07-25 14:07:54
