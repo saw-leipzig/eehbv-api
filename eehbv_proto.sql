@@ -498,6 +498,33 @@ INSERT INTO `property_values` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `requests`
+--
+
+DROP TABLE IF EXISTS `requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `timestamp` varchar(19) NOT NULL,
+  `status` tinyint(4) NOT NULL,
+  `request` text NOT NULL,
+  `result` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `requests_timestamp` (`timestamp`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `requests`
+--
+
+LOCK TABLES `requests` WRITE;
+/*!40000 ALTER TABLE `requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `requests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `roles`
 --
 
@@ -714,4 +741,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-25 14:07:54
+-- Dump completed on 2022-07-29 16:55:05

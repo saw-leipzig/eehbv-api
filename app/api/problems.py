@@ -5,8 +5,10 @@ import solver
 from datetime import datetime
 from flask import request, current_app, Response
 
+from ..decimalencoder import DecimalEncoder
+from app import db
 from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, components, \
-    TARGET_FUNC
+    Requests, TARGET_FUNC
 from . import api
 
 FINISHED = '/finished'
@@ -21,22 +23,15 @@ lossFunctions = LossFuncWrapper()
 
 @api.route('/problems/result/<timestamp>', methods=['GET'])
 def get_result(timestamp):
-    path = current_app.config['DATA_PATH'] + '/' + timestamp
-    if not (os.path.exists(path + FAILED)) and not (os.path.exists(path + FINISHED)):
+    req = Requests.query.filter(Requests.timestamp == timestamp).first()
+    if req is None:
+        return Response('{"status": "failed"}', 404, mimetype='application/json')
+    if req.status == 0:
         return Response('{"status": "pending"}', 200, mimetype='application/json')
-    with open(path + RESULT, 'r') as f:
-        result = f.read()
-    return Response(result, 200 if os.path.exists(path + FINISHED) else 500, mimetype='application/json')
-
-
-@api.route('/problems/request/<timestamp>', methods=['GET'])
-def get_request(timestamp):
-    request_file = current_app.config['DATA_PATH'] + '/' + timestamp + REQUEST
-    if not (os.path.exists(request_file)):
-        return Response('{"status": "Request not found"}', 404, mimetype='application/json')
-    with open(request_file, 'r') as f:
-        req = f.read()
-    return Response(req, 200, mimetype='application/json')
+    resp = json.loads(req.result)
+    resp['status'] = 'Finished' if req.status == 2 else 'Processing'
+    resp['request'] = json.loads(req.request)
+    return Response(json.dumps(resp, cls=DecimalEncoder), 200, mimetype='application/json')
 
 
 @api.route('/problems/<int:cId>', methods=['POST'])
@@ -44,58 +39,42 @@ def handle_problem(cId):
     model = request.get_json()
     print(json.dumps(model))
     date_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    path = current_app.config['DATA_PATH'] + '/' + date_time
-    os.mkdir(path)
-    with open(path + REQUEST, 'w') as f:
-        json.dump(model, f)
+    req_dict = {'request': json.dumps(model), 'timestamp': date_time, 'status': 0, 'result': ''}
+    p = Requests(**req_dict)
+    db.session.add(p)
+    db.session.commit()
     try:
-        solve(cId, model['process']['api_name'], model, path)
+        solve(cId, model['process']['api_name'], model, date_time)
     except Exception:
         return Response('Wrong arguments', 400, mimetype='text/plain')
     return Response(date_time, 202, mimetype='text/plain',
                     headers={'Content-Location': '/problems/result/' + date_time})
 
 
-def solve(cId, process, model, path):
+def solve(cId, process, model, date_time):
     app = current_app._get_current_object()
-    solver_thread = threading.Thread(target=threaded_solve, name='solver-' + path,
-                                     args=[app, cId, process, model, path])
+    solver_thread = threading.Thread(target=threaded_solve, name='solver-' + date_time,
+                                     args=[app, cId, process, model, date_time])
     solver_thread.start()
 
 
-def persist_outcome(result_file, msg, status_file=None):
-    if os.path.exists(result_file):
-        with open(result_file, 'a') as f:
-            f.write('\n')
-            f.write(msg)
+def persist_variant_json(date_time, res, finished, status_file=None):
+    req = Requests.query.filter(Requests.timestamp == date_time).first()
+    if req is None:
+        pass    # ToDo: logging/error message
     else:
-        with open(result_file, 'w') as f:
-            f.write(msg)
-    if status_file is not None:
-        end_solver(status_file)
+        if req.status == 0:
+            req.result = json.dumps({'status': '...', 'result': [res]})
+        else:
+            old_resp = json.loads(req.result)
+            req.result = json.dumps(old_resp['result'].apppend(res))
+        req.status = 2 if finished else 1
+        db.session.commit()
 
 
-def end_solver(status_file):
-    open(status_file, 'a').close()
-
-
-def persist_variant_json(result_file, res, status_file=None):
-    if os.path.exists(result_file):
-        f = open(result_file)
-        prev = json.load(f)
-        f.close()
-        with open(result_file, 'w') as f:
-            json.dump(prev['result'].apppend(res), f)
-    else:
-        with open(result_file, 'w') as f:
-            json.dump({'status': '...', 'result': [res]}, f)
-    if status_file is not None:
-        end_solver(status_file)
-
-
-def persist_variant_opts(variant_name, opts, cost_opts, info, path):
+def persist_variant_opts(variant_name, opts, cost_opts, info, date_time, finished):
     res_dict = wrap_result(variant_name, opts, cost_opts, info)
-    persist_variant_json(path, res_dict)
+    persist_variant_json(date_time, res_dict, finished)
 
 
 def wrap_result(variant_name, opts, cost_opts, info):
@@ -107,22 +86,24 @@ def wrap_result(variant_name, opts, cost_opts, info):
     }
 
 
-def threaded_solve(cApp, cId, process, model, path):
-    result_file = path + RESULT
+def threaded_solve(cApp, cId, process, model, date_time):
     try:
         with cApp.app_context():  # provide context for this thread
-            load_data_and_solve(cId, process, model, result_file)
-        end_solver(path + FINISHED)
+            load_data_and_solve(cId, process, model, date_time)
     except BaseException as e:
-        persist_outcome(result_file, e.args[0] + '\n', path + FAILED)
+        req = Requests.query.filter(Requests.timestamp == date_time).first()
+        req.status = -1
+        db.session.commit()
 
 
-def load_data_and_solve(cId, process, model, path):
+def load_data_and_solve(cId, process, model, date_time):
     variants = Variants.query. \
         filter(Variants.processes_id == cId, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
     names, data = load_data(variants)
     component_keys = ['component_api_name', 'variable_name', 'description']
+    counter = 0
     for v in variants:
+        counter += 1
         loss_functions = lossFunctions.get_functions(process, v)
         print(loss_functions)
         lf_model = [{'description': lf.description,
@@ -155,7 +136,7 @@ def load_data_and_solve(cId, process, model, path):
             cost_opt['indices'] = get_component_names_by_indices(cost_opt['indices'], variant_model['components'],
                                                                  names)
         print(opts)
-        persist_variant_opts(v.name, opts, cost_opts, info, path)
+        persist_variant_opts(v.name, opts, cost_opts, info, date_time, counter == len(variants))
 
 
 def load_data(variants):

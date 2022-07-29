@@ -83,6 +83,10 @@ class Roles(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['roles']
 
 
+class Requests(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['requests']
+
+
 class Users(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['users']
 
