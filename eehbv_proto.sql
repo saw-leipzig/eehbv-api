@@ -525,6 +525,34 @@ LOCK TABLES `requests` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `restrictions`
+--
+
+DROP TABLE IF EXISTS `restrictions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `restrictions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `processes_id` int(11) NOT NULL,
+  `restriction` text NOT NULL,
+  `eval_after_position` int(11) NOT NULL,
+  `description` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `restrictions_processes` (`processes_id`),
+  CONSTRAINT `restrictions_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `restrictions`
+--
+
+LOCK TABLES `restrictions` WRITE;
+/*!40000 ALTER TABLE `restrictions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `restrictions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `roles`
 --
 
@@ -731,6 +759,34 @@ INSERT INTO `variants_loss_functions` VALUES
 (3,15,2,'(p_part_width, p_part_length)','r_trim_motor_loss','Verlust Kappmotor',2,3,'Kappaggregat');
 /*!40000 ALTER TABLE `variants_loss_functions` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `variants_restrictions`
+--
+
+DROP TABLE IF EXISTS `variants_restrictions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `variants_restrictions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `variants_id` int(11) NOT NULL,
+  `restrictions_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `variants_variants_restrictions` (`variants_id`),
+  KEY `restrictions_variants_restrictions` (`restrictions_id`),
+  CONSTRAINT `restrictions_variants_restrictions` FOREIGN KEY (`restrictions_id`) REFERENCES `restrictions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `variants_variants_restrictions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `variants_restrictions`
+--
+
+LOCK TABLES `variants_restrictions` WRITE;
+/*!40000 ALTER TABLE `variants_restrictions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `variants_restrictions` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -741,4 +797,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-29 16:55:05
+-- Dump completed on 2022-08-03 12:23:34

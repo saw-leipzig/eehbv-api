@@ -58,6 +58,14 @@ class LossFunctions(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['loss_functions']
 
 
+class Restrictions(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['restrictions']
+
+
+class VariantsRestrictions(db.Model, Serializable):
+    __table__ = db.Model.metadata.tables['variants_restrictions']
+
+
 class VariantSelection(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variant_selection']
 

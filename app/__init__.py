@@ -19,14 +19,29 @@ def create_app(config_name):
     db.init_app(app)
 
     db.reflect(bind='__all__', app=app)
-    db.metadata.tables['column_info'].append_constraint(ForeignKeyConstraint(['component_id'], ['components.id']))
-    db.metadata.tables['process_parameters'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
-    db.metadata.tables['variant_components'].append_constraint(ForeignKeyConstraint(['variants_id'], ['variants.id']))
-    db.metadata.tables['variants_loss_functions'].append_constraint(ForeignKeyConstraint(['variants_id'], ['variants.id']))
-    db.metadata.tables['variants_loss_functions'].append_constraint(ForeignKeyConstraint(['loss_functions_id'], ['loss_functions.id']))
-    db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['glossary_id'], ['glossary.id']))
-    db.metadata.tables['glossary_processes'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
-    db.metadata.tables['loss_functions'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
+    db.metadata.tables['column_info']. \
+        append_constraint(
+        ForeignKeyConstraint(['component_id'], ['components.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['process_parameters'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variant_components'].append_constraint(
+        ForeignKeyConstraint(['variants_id'], ['variants.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variants_loss_functions'].append_constraint(
+        ForeignKeyConstraint(['variants_id'], ['variants.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variants_loss_functions'].append_constraint(
+        ForeignKeyConstraint(['loss_functions_id'], ['loss_functions.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['glossary_processes'].append_constraint(
+        ForeignKeyConstraint(['glossary_id'], ['glossary.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['glossary_processes'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['loss_functions'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variants_restrictions'].append_constraint(
+        ForeignKeyConstraint(['variants_id'], ['variants.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variants_restrictions'].append_constraint(
+        ForeignKeyConstraint(['restrictions_id'], ['restrictions.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['restrictions'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id'],
+                                                                              onupdate='CASCADE', ondelete='CASCADE'))
     # db.metadata.tables['processes'].__table__.columns.pp = db.append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     print(db.metadata.tables)
 
