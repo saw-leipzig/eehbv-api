@@ -34,7 +34,7 @@ def wander_tree(depth, model, components, combination, lfs, data):
         var_name = components[0]['variable_name']
         indices[var_name] = index
         new_combination = {**combination, var_name: comp}
-        if conditions_satisfied(model, new_combination, data):
+        if conditions_satisfied(model, new_combination, data, depth):
             update_losses(data, model, new_combination, lfs, depth)
             # recursive decision
             if len(components) > 1:
@@ -77,7 +77,7 @@ def update_losses(data, model, combination, lfs, depth):
                 exec('current_losses["' + lf['variable_name'] + '"].append(' + lf['variable_name'] + ')')
 
 
-def conditions_satisfied(model, combination, data):
+def conditions_satisfied(model, combination, data, depth):
     # noinspection DuplicatedCode
     for data_key in data.keys():
         exec(data_key + ' = data["' + data_key + '"]')
@@ -86,6 +86,7 @@ def conditions_satisfied(model, combination, data):
     for general_key in model['general_parameters']:
         exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
     global current_losses
+    # check request conditions
     for pos in range(len(model['process_profiles'])):  # conditions have to be fulfilled for all profiles
         for parameter_key in model['process_profiles'][pos].keys():
             exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
@@ -98,7 +99,15 @@ def conditions_satisfied(model, combination, data):
                     return False
             except NameError as ex:  # conditions with missing vars have to be evaluated at a deeper level
                 print('Condition parameter not defined: ' + ex.args[0])
-    # ToDo: check implicit conditions
+    # check implicit conditions
+    for restr in model['restrictions']:
+        if depth == restr['eval_after_position']:
+            try:
+                result = eval(restr['restriction'])
+                if not result:
+                    return False
+            except NameError as ex:
+                print('Condition parameter not defined: ' + ex.args[0])
     return True
 
 

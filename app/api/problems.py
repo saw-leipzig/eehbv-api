@@ -8,7 +8,7 @@ from flask import request, current_app, Response
 from ..decimalencoder import DecimalEncoder
 from app import db
 from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, components, \
-    Requests, TARGET_FUNC
+    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC
 from . import api
 
 FINISHED = '/finished'
@@ -32,6 +32,21 @@ def get_result(timestamp):
     resp['status'] = 'Finished' if req.status == 2 else 'Processing'
     resp['request'] = json.loads(req.request)
     return Response(json.dumps(resp, cls=DecimalEncoder), 200, mimetype='application/json')
+
+
+# ToDo: pageable, starting at last, filterable by process type
+@api.route('/problems/results')
+def get_results():
+    reqs = Requests.query.filter(Requests.status == 2).all()
+    json_comp = json.dumps({'requests': [single_request(r) for r in reqs]}, cls=DecimalEncoder)
+    return Response(json_comp, mimetype='application/json')
+
+
+def single_request(r):
+    req = json.loads(r.request)
+    return {'timestamp': r.timestamp, 'description': req['description'], 'process': req['process'],
+            'costs_opt': req['result_settings']['costs_opt']['exec'],
+            'variants': [v['name'] for v in req['variants_conditions']]}
 
 
 @api.route('/problems/<int:cId>', methods=['POST'])
@@ -106,6 +121,7 @@ def load_data_and_solve(cId, process, model, date_time):
         counter += 1
         loss_functions = lossFunctions.get_functions(process, v)
         print(loss_functions)
+        restrictions = load_restrictions(v.id)
         lf_model = [{'description': lf.description,
                      'eval_after_position': lf.eval_after_position,
                      'function_call': TARGET_FUNC + '_' + str(lf.loss_functions_id) + lf.parameter_list,
@@ -119,6 +135,7 @@ def load_data_and_solve(cId, process, model, date_time):
                          'result_settings': model['result_settings'],
                          'conditions': next(vv for vv in model['variants_conditions'] if vv['id'] == v.id)[
                              'conditions'],
+                         'restrictions': restrictions,
                          'components': [{key: c.as_dict()[key] for key in component_keys} for c in
                                         sorted(v.variant_components, key=lambda cc: cc.position)],
                          'loss_functions': lf_model
@@ -151,6 +168,13 @@ def load_data(variants):
                 keys = [k for k in comps[0].as_dict().keys() if k not in ['id', 'name', 'manufacturer']]
                 data[comp_name] = [{key: cc.as_dict()[key] for key in keys} for cc in comps]
     return names, data
+
+
+def load_restrictions(variant_id):
+    restrictions_ids = (restr.restrictions_id for restr
+                        in VariantsRestrictions.query.filter(VariantsRestrictions.variants_id == variant_id).all())
+    return ({'restriction': r.restriction, 'eval_after_position': r.eval_after_position}
+            for r in Restrictions.query.filter(Restrictions.id.in_(restrictions_ids)).all())
 
 
 def get_component_names_by_indices(ids, comps, names):
