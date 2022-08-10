@@ -503,25 +503,17 @@ DROP TABLE IF EXISTS `requests`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `processes_id` int(11) NOT NULL,
   `timestamp` varchar(19) NOT NULL,
   `status` tinyint(4) NOT NULL,
   `request` text NOT NULL,
   `result` text NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `requests_timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4;
+  UNIQUE KEY `requests_timestamp` (`timestamp`),
+  KEY `requests_processes_index` (`processes_id`),
+  CONSTRAINT `requests_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `requests`
---
-
-LOCK TABLES `requests` WRITE;
-/*!40000 ALTER TABLE `requests` DISABLE KEYS */;
-INSERT INTO `requests` VALUES
-(27,'2022-08-08_22-11-12',2,'{\"description\": \"Kantenanleimmaschine - 8.8.2022, 22:11:11\", \"result_settings\": {\"n_list\": \"5\", \"costs_opt\": {\"exec\": false, \"price_kwh\": 0.23, \"amortisation_time\": 2, \"assembly_costs\": 10000}}, \"process\": {\"id\": 1, \"api_name\": \"edge_banding\", \"view_name\": \"Kantenanleimmaschine\"}, \"general_parameters\": {\"p_teeth_clipping\": \"12\"}, \"process_profiles\": [{\"p_part_width\": 1, \"p_part_length\": 1, \"p_milling_width\": 1, \"p_milling_depth\": 1, \"p_k_c05\": 22.5, \"portion\": 2}], \"variants_conditions\": [{\"id\": 15, \"name\": \"F\\u00fcgefraser, Leim mit Eckenkopierer, B\\u00fcndigfr\\u00e4ser\", \"conditions\": [\"0 < 2 + p_part_width * p_milling_depth\"]}]}','{\"status\": \"...\", \"result\": [{\"variant\": \"F\\u00fcgefraser, Leim mit Eckenkopierer, B\\u00fcndigfr\\u00e4ser\", \"opts\": [{\"acquisition_costs\": null, \"total\": 6, \"partials\": {\"Verlust F\\u00fcgefr\\u00e4smotor\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}, \"Verlust Kappmotor\": {\"value\": 2, \"aggregate\": \"Kappaggregat\"}, \"Verlust F\\u00fcgefr\\u00e4swandler\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}}, \"indices\": {\"Fr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"B\\u00fcndigfr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"Nebenantriebsmotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}}}, {\"acquisition_costs\": null, \"total\": 6, \"partials\": {\"Verlust F\\u00fcgefr\\u00e4smotor\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}, \"Verlust Kappmotor\": {\"value\": 2, \"aggregate\": \"Kappaggregat\"}, \"Verlust F\\u00fcgefr\\u00e4swandler\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}}, \"indices\": {\"Fr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"B\\u00fcndigfr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"Nebenantriebsmotor\": {\"name\": \"motor2\", \"manufacturer\": \"ref\"}}}, {\"acquisition_costs\": null, \"total\": 6, \"partials\": {\"Verlust F\\u00fcgefr\\u00e4smotor\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}, \"Verlust Kappmotor\": {\"value\": 2, \"aggregate\": \"Kappaggregat\"}, \"Verlust F\\u00fcgefr\\u00e4swandler\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}}, \"indices\": {\"Fr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"B\\u00fcndigfr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"Nebenantriebsmotor\": {\"name\": \"motor3\", \"manufacturer\": \"ref\"}}}, {\"acquisition_costs\": null, \"total\": 6, \"partials\": {\"Verlust F\\u00fcgefr\\u00e4smotor\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}, \"Verlust Kappmotor\": {\"value\": 2, \"aggregate\": \"Kappaggregat\"}, \"Verlust F\\u00fcgefr\\u00e4swandler\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}}, \"indices\": {\"Fr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"B\\u00fcndigfr\\u00e4sermotor\": {\"name\": \"motor2\", \"manufacturer\": \"ref\"}, \"Nebenantriebsmotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}}}, {\"acquisition_costs\": null, \"total\": 6, \"partials\": {\"Verlust F\\u00fcgefr\\u00e4smotor\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}, \"Verlust Kappmotor\": {\"value\": 2, \"aggregate\": \"Kappaggregat\"}, \"Verlust F\\u00fcgefr\\u00e4swandler\": {\"value\": 2, \"aggregate\": \"F\\u00fcgefr\\u00e4se\"}}, \"indices\": {\"Fr\\u00e4sermotor\": {\"name\": \"motor1\", \"manufacturer\": \"ref\"}, \"B\\u00fcndigfr\\u00e4sermotor\": {\"name\": \"motor2\", \"manufacturer\": \"ref\"}, \"Nebenantriebsmotor\": {\"name\": \"motor2\", \"manufacturer\": \"ref\"}}}], \"cost_opts\": [], \"info\": \"no special remarks\"}]}');
-/*!40000 ALTER TABLE `requests` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `restrictions`
@@ -796,4 +788,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-08-08 22:00:49
+-- Dump completed on 2022-08-10 10:53:58

@@ -3,7 +3,7 @@ import os
 import threading
 import solver
 from datetime import datetime
-from flask import request, current_app, Response
+from flask import request, current_app, Response, jsonify
 
 from ..decimalencoder import DecimalEncoder
 from app import db
@@ -34,10 +34,18 @@ def get_result(timestamp):
     return Response(json.dumps(resp, cls=DecimalEncoder), 200, mimetype='application/json')
 
 
-# ToDo: pageable, starting at last, filterable by process type
+# ToDo: pageable, starting at last
 @api.route('/problems/results')
 def get_results():
     reqs = Requests.query.filter(Requests.status == 2).all()
+    json_comp = json.dumps({'requests': [single_request(r) for r in reqs]}, cls=DecimalEncoder)
+    return Response(json_comp, mimetype='application/json')
+
+
+# ToDo: pageable, starting at last
+@api.route('/problems/<int:cId>/results')
+def get_results_by_process(cId):
+    reqs = Requests.query.filter(Requests.processes_id == cId, Requests.status == 2).all()
     json_comp = json.dumps({'requests': [single_request(r) for r in reqs]}, cls=DecimalEncoder)
     return Response(json_comp, mimetype='application/json')
 
@@ -49,12 +57,24 @@ def single_request(r):
             'variants': [v['name'] for v in req['variants_conditions']]}
 
 
+@api.route('/problems/results/<timestamp>', methods=['DELETE'])
+def delete_result(timestamp):
+    req = Requests.query.filter(Requests.timestamp == timestamp).first()
+    db.session.delete(req)
+    db.session.commit()
+    return jsonify({
+        'status': 'ok',
+        'table': 'requests',
+        'deleted': timestamp
+    })
+
+
 @api.route('/problems/<int:cId>', methods=['POST'])
 def handle_problem(cId):
     model = request.get_json()
     print(json.dumps(model))
     date_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    req_dict = {'request': json.dumps(model), 'timestamp': date_time, 'status': 0, 'result': ''}
+    req_dict = {'processes_id': cId, 'request': json.dumps(model), 'timestamp': date_time, 'status': 0, 'result': ''}
     p = Requests(**req_dict)
     db.session.add(p)
     db.session.commit()

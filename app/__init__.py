@@ -19,8 +19,7 @@ def create_app(config_name):
     db.init_app(app)
 
     db.reflect(bind='__all__', app=app)
-    db.metadata.tables['column_info']. \
-        append_constraint(
+    db.metadata.tables['column_info'].append_constraint(
         ForeignKeyConstraint(['component_id'], ['components.id'], onupdate='CASCADE', ondelete='CASCADE'))
     db.metadata.tables['process_parameters'].append_constraint(
         ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
@@ -40,8 +39,10 @@ def create_app(config_name):
         ForeignKeyConstraint(['variants_id'], ['variants.id'], onupdate='CASCADE', ondelete='CASCADE'))
     db.metadata.tables['variants_restrictions'].append_constraint(
         ForeignKeyConstraint(['restrictions_id'], ['restrictions.id'], onupdate='CASCADE', ondelete='CASCADE'))
-    db.metadata.tables['restrictions'].append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id'],
-                                                                              onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['restrictions'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['requests'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
     # db.metadata.tables['processes'].__table__.columns.pp = db.append_constraint(ForeignKeyConstraint(['processes_id'], ['processes.id']))
     print(db.metadata.tables)
 
