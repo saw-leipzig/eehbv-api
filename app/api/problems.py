@@ -1,14 +1,15 @@
 import json
 import os
 import threading
-import solver
+# import solver
 from datetime import datetime
 from flask import request, current_app, Response, jsonify
 
 from ..decimalencoder import DecimalEncoder
 from app import db
+from ..decorators import permission_required
 from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, components, \
-    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC
+    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission
 from . import api
 
 FINISHED = '/finished'
@@ -58,6 +59,7 @@ def single_request(r):
 
 
 @api.route('/problems/results/<timestamp>', methods=['DELETE'])
+@permission_required(Permission.DATA)
 def delete_result(timestamp):
     req = Requests.query.filter(Requests.timestamp == timestamp).first()
     db.session.delete(req)
