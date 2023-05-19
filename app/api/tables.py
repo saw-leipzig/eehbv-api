@@ -26,8 +26,8 @@ def new_component_type():
         create_new_component_table(comp_type["table_name"], comp_type["api_name"], comp_type["columns"])
     except BaseException as e:
         return return_error(e)
-    json_type = get_table(c.id)
-    return Response(json_type, 201, mimetype='application/json')
+    json_type = get_table_raw(c.id)
+    return Response(json.dumps(json_type), 201, mimetype='application/json')
 
 
 def return_error(ex):
@@ -47,8 +47,12 @@ def get_tables():
 
 @api.route('/component-types/<int:cId>')
 def get_table(cId):
+    return jsonify(get_table_raw(cId))
+
+
+def get_table_raw(cId):
     component_type = Components.query.filter_by(id=cId).first()
-    return jsonify(get_component_table(cId, component_type))
+    return get_component_table(cId, component_type)
 
 
 @api.route('/component-types/<cType>')

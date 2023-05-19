@@ -122,7 +122,7 @@ LOCK TABLES `column_info` WRITE;
 INSERT INTO `column_info` VALUES
 (1,1,'name','Modell','VARCHAR',1,NULL),
 (2,1,'manufacturer','Hersteller','VARCHAR',2,NULL),
-(3,1,'n_max','Nom. Drehzahl','DOUBLE',13,'s^-1'),
+(3,1,'n_nominal','Nom. Drehzahl','DOUBLE',13,'s^-1'),
 (28,1,'price','Preis','INT',3,'Euro'),
 (29,1,'p_nominal','Nennleistung','DOUBLE',4,'kW'),
 (32,1,'p_0_25','P(0;25)','DOUBLE',5,'%'),
