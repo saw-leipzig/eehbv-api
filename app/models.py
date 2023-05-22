@@ -198,18 +198,18 @@ class ProblemWrapper:
         return self.problems[cId].call_solver(lf, model, data)
 
 
-class TargetFuncWrapper:
-    def __init__(self):
-        self.target_functions = {}
-
-    def get_func(self, pId, vId, process, variant):
-        if pId not in self.target_functions:
-            self.target_functions[pId] = {}
-        if vId not in self.target_functions[pId]:
-            if variant.target_func is None or variant.target_func == '':
-                raise Exception('Target function not defined')
-            self.target_functions[pId][vId] = import_code(variant.target_func, process + '_' + str(vId))
-        return self.target_functions[pId][vId].target_func
+# class TargetFuncWrapper:
+#     def __init__(self):
+#         self.target_functions = {}
+#
+#     def get_func(self, pId, vId, process, variant):
+#         if pId not in self.target_functions:
+#             self.target_functions[pId] = {}
+#         if vId not in self.target_functions[pId]:
+#             if variant.target_func is None or variant.target_func == '':
+#                 raise Exception('Target function not defined')
+#             self.target_functions[pId][vId] = import_code(variant.target_func, process + '_' + str(vId))
+#         return self.target_functions[pId][vId].target_func
 
 
 class LossFuncWrapper:

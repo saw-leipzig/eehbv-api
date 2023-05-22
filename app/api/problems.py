@@ -8,8 +8,8 @@ from flask import request, current_app, Response, jsonify
 from ..decimalencoder import DecimalEncoder
 from app import db
 from ..decorators import permission_required
-from ..models import ProblemWrapper, TargetFuncWrapper, LossFuncWrapper, Variants, components, \
-    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission
+from ..models import ProblemWrapper, LossFuncWrapper, Variants, components, \
+    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission   # , TargetFuncWrapper
 from . import api
 
 FINISHED = '/finished'
@@ -18,7 +18,7 @@ RESULT = '/result.json'
 REQUEST = '/problem.json'
 
 problems = ProblemWrapper()
-targetFunctions = TargetFuncWrapper()
+# targetFunctions = TargetFuncWrapper()
 lossFunctions = LossFuncWrapper()
 
 
@@ -149,7 +149,8 @@ def load_data_and_solve(cId, process, model, date_time):
                      'function_call': TARGET_FUNC + '_' + str(lf.loss_functions_id) + lf.parameter_list,
                      'position': lf.position,
                      'variable_name': lf.variable_name,
-                     'aggregate': lf.aggregate}
+                     'aggregate': lf.aggregate,
+                     'is_loss': lf.is_loss}
                     for lf in
                     sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
         variant_model = {'process_profiles': model['process_profiles'],

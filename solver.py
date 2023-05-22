@@ -127,9 +127,10 @@ def sum_losses(model):
     global weighted_losses
     total = 0
     for current_losses_key in current_losses.keys():
-        weighted_losses[current_losses_key] = sum(clk * profile['portion'] for clk, profile
-                                                  in zip(current_losses[current_losses_key], model['process_profiles']))
-        total += weighted_losses[current_losses_key]
+        if function_is_loss(model, current_losses_key):
+            weighted_losses[current_losses_key] = sum(clk * profile['portion'] for clk, profile
+                                                      in zip(current_losses[current_losses_key], model['process_profiles']))
+            total += weighted_losses[current_losses_key]
     return total
 
 
@@ -190,6 +191,10 @@ def build_opt(model, total, acquisition_costs):
 def description_and_aggregate_from_variable(model, var):
     function_by_var = next(lf for lf in model['loss_functions'] if lf['variable_name'] == var)
     return [function_by_var['description'], function_by_var['aggregate']]
+
+
+def function_is_loss(model, var):
+    return all(lf['is_loss'] for lf in model['loss_functions'] if lf['variable_name'] == var)
 
 
 def partial_generator(model):
