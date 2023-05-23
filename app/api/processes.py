@@ -1,7 +1,8 @@
 import json
 from flask import jsonify, request, Response
 from . import api
-from ..models import Processes, ProcessParameters, LossFunctions, VariantsLossFunctions, InfoTexts, Variants, VariantSelection, ProblemType, Permission
+from ..models import Processes, ProcessParameters, LossFunctions, VariantsLossFunctions, InfoTexts, Variants,\
+    VariantComponents, VariantsRestrictions, Restrictions, VariantSelection, ProblemType, Permission
 from app import db
 from ..decorators import permission_required
 
@@ -26,14 +27,42 @@ def create_process():
     p = Processes(**proc_dict)
     db.session.add(p)
     db.session.commit()
+    funcs = {}
+    for func in proc['functions']:
+        func_dict = {**func, 'processes_id': p.id}
+        f = LossFunctions(**func_dict)
+        db.session.add(f)
+        db.session.commit()
+        funcs[f.description] = f.id
     for param in proc['process']['process_parameters']:
-        param_dict = {**param, 'processes_id': p.id}
+        # param_dict = {**param, 'processes_id': p.id}
+        needed_param_entries = {key: param[key] for key in ['name', 'unit', 'variable_name', 'material_properties_id', 'dependent', 'derived_parameter', 'dependency']}
+        param_dict = {**needed_param_entries, 'defaults': '', 'general': False, 'processes_id': p.id}
         pp = ProcessParameters(**param_dict)
         db.session.add(pp)
+    db.session.commit()
     for variant in proc['variants']:
-        var_dict = {**variant, 'processes_id': p.id}
+        var_dict = {'name': variant['name'], 'processes_id': p.id}
         v = Variants(**var_dict)
         db.session.add(v)
+        db.session.commit()
+        for component in variant['variant_components']:
+            comp_dict = {**component, 'variants_id': variant.id}
+            c = VariantComponents(**comp_dict)
+            db.session.add(c)
+        for lf in variant['variant_functions']:
+            needed_lf_entries = {key: lf[key] for key in ['parameter_list', 'variable_name', 'description', 'eval_after_position', 'position', 'aggregate']}
+            lf_dict = {**needed_lf_entries, 'variants_id': variant.id, 'loss_functions_id': funcs[lf['loss_function_description']]}
+            loss_func = VariantsLossFunctions(**lf_dict)
+            db.session.add(loss_func)
+        for r in variant['variant_restrictions']:
+            r_dict = {**r, 'processes_id': p.id}
+            restr = Restrictions(**r_dict)
+            db.session.add(restr)
+            db.session.commit()
+            vr_dict = {'variants_id': v.id, 'restrictions_id': restr.id}
+            vr = VariantsRestrictions(**vr_dict)
+            db.session.add(vr)
     var_select_dict = {'processes_id': p.id, 'selection': json.dumps(proc['variant_selection'])}
     vs = VariantSelection(**var_select_dict)
     db.session.add(vs)
