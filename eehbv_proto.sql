@@ -413,7 +413,7 @@ DROP TABLE IF EXISTS `process_solvers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `process_solvers` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `processes_id` int(11) NOT NULL,
   `code` mediumtext DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -663,7 +663,8 @@ CREATE TABLE `variant_selection` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `processes_id` int(11) NOT NULL,
   `selection` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`selection`)),
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `process_variant_selection` FOREIGN KEY (`processes_id`) REFERENCES `processes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE; 
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -760,9 +761,9 @@ CREATE TABLE `variants_loss_functions` (
 LOCK TABLES `variants_loss_functions` WRITE;
 /*!40000 ALTER TABLE `variants_loss_functions` DISABLE KEYS */;
 INSERT INTO `variants_loss_functions` VALUES
-(1,15,1,'(p_part_width, p_part_length)','r_milling_motor_loss','Verlust Fügefräsmotor',1,1,'Fügefräse',0),
-(2,15,1,'(p_part_width, p_part_length)','r_milling_trans_loss','Verlust Fügefräswandler',3,2,'Fügefräse',0),
-(3,15,2,'(p_part_width, p_part_length)','r_trim_motor_loss','Verlust Kappmotor',2,3,'Kappaggregat',0);
+(1,15,1,'(p_part_width, p_part_length)','r_milling_motor_loss','Verlust Fügefräsmotor',1,1,'Fügefräse',1),
+(2,15,1,'(p_part_width, p_part_length)','r_milling_trans_loss','Verlust Fügefräswandler',3,2,'Fügefräse',1),
+(3,15,2,'(p_part_width, p_part_length)','r_trim_motor_loss','Verlust Kappmotor',2,3,'Kappaggregat',1);
 /*!40000 ALTER TABLE `variants_loss_functions` ENABLE KEYS */;
 UNLOCK TABLES;
 

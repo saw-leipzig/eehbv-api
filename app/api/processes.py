@@ -15,15 +15,19 @@ def get_processes():
 
 @api.route('/processes/<int:cId>')
 def get_process(cId):
-    process = Processes.query.filter_by(id=cId).first()
+    process = get_process_raw(cId)
     return jsonify({**process.as_dict(), 'parameters': [p.as_dict() for p in process.process_parameters]})
+
+
+def get_process_raw(cId):
+    return Processes.query.filter_by(id=cId).first()
 
 
 @api.route('/processes', methods=['POST'])
 @permission_required(Permission.OPT)
 def create_process():
     proc = request.get_json()
-    proc_dict = {key: proc[key] for key in ['view_name', 'api_name', 'variant_tree']}
+    proc_dict = {key: proc['process'][key] for key in ['view_name', 'api_name', 'variant_tree']}
     p = Processes(**proc_dict)
     db.session.add(p)
     db.session.commit()
@@ -47,12 +51,12 @@ def create_process():
         db.session.add(v)
         db.session.commit()
         for component in variant['variant_components']:
-            comp_dict = {**component, 'variants_id': variant.id}
+            comp_dict = {**component, 'variants_id': v.id}
             c = VariantComponents(**comp_dict)
             db.session.add(c)
         for lf in variant['variant_functions']:
-            needed_lf_entries = {key: lf[key] for key in ['parameter_list', 'variable_name', 'description', 'eval_after_position', 'position', 'aggregate']}
-            lf_dict = {**needed_lf_entries, 'variants_id': variant.id, 'loss_functions_id': funcs[lf['loss_function_description']]}
+            needed_lf_entries = {key: lf[key] for key in ['parameter_list', 'variable_name', 'description', 'eval_after_position', 'position', 'aggregate', 'is_loss']}
+            lf_dict = {**needed_lf_entries, 'variants_id': v.id, 'loss_functions_id': funcs[lf['loss_function_description']]}
             loss_func = VariantsLossFunctions(**lf_dict)
             db.session.add(loss_func)
         for r in variant['variant_restrictions']:
@@ -74,7 +78,8 @@ def create_process():
         i = InfoTexts(**info_dict)
         db.session.add(i)
     db.session.commit()
-    return Response(get_process(p.id), 201, mimetype='application/json')
+    new_process = get_process_raw(p.id)
+    return Response(json.dumps(new_process.as_dict()), mimetype='application/json')
 
 
 @api.route('/processes/<int:cId>/variants')
