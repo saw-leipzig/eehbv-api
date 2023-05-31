@@ -7,6 +7,24 @@ from app import db
 from ..decorators import permission_required
 
 
+@api.route('/procceses/<int:cId>', methods=['DELETE'])
+@permission_required(Permission.ADMIN)
+def delete_process(cId):
+    proc = get_process_raw(cId)
+    if proc is None:
+        return jsonify({
+            'status': 'not found',
+            'table': 'processes',
+            'id': cId
+        }), 204
+    db.session.delete(proc)
+    db.session.commit()
+    return jsonify({
+        'status': 'ok',
+        'table': 'processes',
+        'deleted': cId
+    })
+
 @api.route('/processes')
 def get_processes():
     processes = Processes.query.all()
