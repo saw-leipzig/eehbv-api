@@ -289,7 +289,7 @@ CREATE TABLE `info_texts` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `info_ref_id` (`type_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -300,7 +300,13 @@ LOCK TABLES `info_texts` WRITE;
 /*!40000 ALTER TABLE `info_texts` DISABLE KEYS */;
 INSERT INTO `info_texts` VALUES
 (1,1,1,3,'Prozess-spezifischer Infotext für Angabe der Prozessparameter von Kantenanleimmaschinen...'),
-(2,1,1,4,'Prozess-spezifischer Infotext für Angabe der Nebenbedingungen von Kantenanleimmaschinen...');
+(2,1,1,4,'Prozess-spezifischer Infotext für Angabe der Nebenbedingungen von Kantenanleimmaschinen...'),
+(3,1,9,3,'Hilfetext Prozessparameter'),
+(4,1,9,4,'Hilfetext Nebenbedingungen'),
+(5,1,10,3,'Hilfetext Prozessparameter'),
+(6,1,10,4,'Hilfetext Nebenbedingungen'),
+(7,1,11,3,'Hilfetext Prozessparameter'),
+(8,1,11,4,'Hilfetext Nebenbedingungen');
 /*!40000 ALTER TABLE `info_texts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -316,10 +322,11 @@ CREATE TABLE `loss_functions` (
   `processes_id` int(11) NOT NULL,
   `func` text NOT NULL,
   `description` varchar(30) NOT NULL,
+  `doc` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `processes_loss_functions` (`processes_id`),
   CONSTRAINT `processes_loss_functions` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -329,8 +336,8 @@ CREATE TABLE `loss_functions` (
 LOCK TABLES `loss_functions` WRITE;
 /*!40000 ALTER TABLE `loss_functions` DISABLE KEYS */;
 INSERT INTO `loss_functions` VALUES
-(1,1,'def target_func(param_a, param_b):\r\n    return param_a * param_b','Motorverlust'),
-(2,1,'def target_func(param_a, param_b):\r\n    return param_a * param_b * param_b','Wandlerverlust');
+(1,1,'def target_func(param_a, param_b):\r\n    return param_a * param_b','Motorverlust',''),
+(2,1,'def target_func(param_a, param_b):\r\n    return param_a * param_b * param_b','Wandlerverlust','');
 /*!40000 ALTER TABLE `loss_functions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -386,7 +393,7 @@ CREATE TABLE `process_parameters` (
   KEY `process_parameters_properties` (`material_properties_id`),
   CONSTRAINT `process_parameters_properties` FOREIGN KEY (`material_properties_id`) REFERENCES `material_properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `processes_parameters` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -419,7 +426,7 @@ CREATE TABLE `process_solvers` (
   PRIMARY KEY (`id`),
   KEY `processes_processsolvers` (`processes_id`),
   CONSTRAINT `processes_processsolvers` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -446,7 +453,7 @@ CREATE TABLE `processes` (
   `api_name` varchar(30) NOT NULL,
   `variant_tree` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -546,7 +553,7 @@ CREATE TABLE `restrictions` (
   PRIMARY KEY (`id`),
   KEY `restrictions_processes` (`processes_id`),
   CONSTRAINT `restrictions_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -636,7 +643,7 @@ CREATE TABLE `variant_components` (
   KEY `variant_components_api_name` (`component_api_name`),
   CONSTRAINT `variant_components` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variant_components_api_name` FOREIGN KEY (`component_api_name`) REFERENCES `components` (`api_name`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -664,8 +671,9 @@ CREATE TABLE `variant_selection` (
   `processes_id` int(11) NOT NULL,
   `selection` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`selection`)),
   PRIMARY KEY (`id`),
-  CONSTRAINT `process_variant_selection` FOREIGN KEY (`processes_id`) REFERENCES `processes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE; 
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+  KEY `process_variant_selection` (`processes_id`),
+  CONSTRAINT `process_variant_selection` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -693,7 +701,7 @@ CREATE TABLE `variants` (
   PRIMARY KEY (`id`),
   KEY `variants_process` (`processes_id`),
   CONSTRAINT `variants_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -751,7 +759,7 @@ CREATE TABLE `variants_loss_functions` (
   KEY `loss_functions_variants_loss_functions` (`loss_functions_id`),
   CONSTRAINT `loss_functions_variants_loss_functions` FOREIGN KEY (`loss_functions_id`) REFERENCES `loss_functions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variants_variants_loss_functions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -783,7 +791,7 @@ CREATE TABLE `variants_restrictions` (
   KEY `restrictions_variants_restrictions` (`restrictions_id`),
   CONSTRAINT `restrictions_variants_restrictions` FOREIGN KEY (`restrictions_id`) REFERENCES `restrictions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variants_variants_restrictions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -804,4 +812,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-05-22 22:08:59
+-- Dump completed on 2023-05-31 17:46:51
