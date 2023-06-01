@@ -122,17 +122,17 @@ LOCK TABLES `column_info` WRITE;
 INSERT INTO `column_info` VALUES
 (1,1,'name','Modell','VARCHAR',1,NULL),
 (2,1,'manufacturer','Hersteller','VARCHAR',2,NULL),
-(3,1,'n_nominal','Nom. Drehzahl','DOUBLE',13,'s^-1'),
+(3,1,'n_nominal','Nenndrehzahl','DOUBLE',6,'1/min'),
 (28,1,'price','Preis','INT',3,'Euro'),
-(29,1,'p_nominal','Nennleistung','DOUBLE',4,'kW'),
-(32,1,'p_0_25','P(0;25)','DOUBLE',5,'%'),
-(33,1,'p_0_50','P(0;50)','DOUBLE',6,'%'),
-(34,1,'p_0_100','P(0;100)','DOUBLE',7,'%'),
-(35,1,'p_50_25','P(50;25)','DOUBLE',8,'%'),
-(36,1,'p_50_50','P(50;50)','INT',9,'%'),
-(37,1,'p_50_100','P(50;100)','DOUBLE',10,'%'),
-(38,1,'p_90_50','P(90;50)','DOUBLE',11,'%'),
-(39,1,'p_90_100','P(90;100)','DOUBLE',12,'%');
+(29,1,'p_nominal','Nennleistung','DOUBLE',4,'W'),
+(32,1,'m_nominal','Nenndrehmoment','DOUBLE',5,'Nm'),
+(33,1,'coeff_a','Koeff. A','DOUBLE',7,''),
+(34,1,'coeff_b','Koeff. B','DOUBLE',8,''),
+(35,1,'coeff_c','Koeff. C','DOUBLE',9,''),
+(36,1,'coeff_d','Koeff. D','INT',10,''),
+(37,1,'coeff_e','Koeff. E','DOUBLE',11,''),
+(38,1,'p_90_50','coeff_f','DOUBLE',12,''),
+(39,1,'coeff_g','Koeff. G','DOUBLE',13,'');
 /*!40000 ALTER TABLE `column_info` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -149,15 +149,15 @@ CREATE TABLE `component_motors` (
   `manufacturer` varchar(40) NOT NULL,
   `price` int(11) NOT NULL,
   `p_nominal` double NOT NULL,
-  `p_0_25` double NOT NULL,
-  `p_0_50` double NOT NULL,
-  `p_0_100` double NOT NULL,
-  `p_50_25` double NOT NULL,
-  `p_50_50` double NOT NULL,
-  `p_50_100` double NOT NULL,
-  `p_90_50` double NOT NULL,
-  `p_90_100` double NOT NULL,
+  `m_nominal` double NOT NULL,
   `n_nominal` double NOT NULL,
+  `coeff_a` double NOT NULL,
+  `coeff_b` double NOT NULL,
+  `coeff_c` double NOT NULL,
+  `coeff_d` double NOT NULL,
+  `coeff_e` double NOT NULL,
+  `coeff_f` double NOT NULL,
+  `coeff_g` double NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -812,4 +812,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-05-31 17:46:51
+-- Dump completed on 2023-06-01 21:49:31

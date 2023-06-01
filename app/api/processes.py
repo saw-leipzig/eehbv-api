@@ -8,7 +8,7 @@ from ..decorators import permission_required
 
 
 @api.route('/procceses/<int:cId>', methods=['DELETE'])
-@permission_required(Permission.ADMIN)
+@permission_required(Permission.OPT)
 def delete_process(cId):
     proc = get_process_raw(cId)
     if proc is None:
@@ -78,7 +78,8 @@ def create_process():
             loss_func = VariantsLossFunctions(**lf_dict)
             db.session.add(loss_func)
         for r in variant['variant_restrictions']:
-            r_dict = {**r, 'processes_id': p.id}
+            needed_r_entries = {key: r[key] for key in ['description', 'eval_after_position', 'restriction']}
+            r_dict = {**needed_r_entries, 'processes_id': p.id}
             restr = Restrictions(**r_dict)
             db.session.add(restr)
             db.session.commit()
