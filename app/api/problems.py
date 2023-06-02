@@ -1,7 +1,7 @@
 import json
 import os
 import threading
-# import solver
+import solver
 from datetime import datetime
 from flask import request, current_app, Response, jsonify
 
@@ -9,7 +9,7 @@ from ..decimalencoder import DecimalEncoder
 from app import db
 from ..decorators import permission_required
 from ..models import ProblemWrapper, LossFuncWrapper, Variants, components, \
-    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission   # , TargetFuncWrapper
+    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission, ProblemType  # , TargetFuncWrapper
 from . import api
 
 FINISHED = '/finished'
@@ -134,6 +134,9 @@ def threaded_solve(cApp, cId, process, model, date_time):
 
 
 def load_data_and_solve(cId, process, model, date_time):
+    problem = ProblemType.query.filter_by(processes_id=cId).first()
+    if problem is None:
+        raise Exception('Problem not defined')
     variants = Variants.query. \
         filter(Variants.processes_id == cId, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
     names, data = load_data(variants)
@@ -164,11 +167,12 @@ def load_data_and_solve(cId, process, model, date_time):
                          'loss_functions': lf_model
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
-        opts, cost_opts, info = solver.call_solver(
-                    loss_functions, variant_model, {key: data[key] for key in variant_comp_types})  # pass only necessary data
-#        opts, cost_opts, info = problems.call_solver(cId,
-#                                                     process, loss_functions, variant_model,
-#                                                     {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        if problem.use_solver:
+            opts, cost_opts, info = problems.call_solver(cId, problem.code, process, loss_functions, variant_model,
+                                                         {key: data[key] for key in variant_comp_types})  # pass only necessary data
+        else:
+            opts, cost_opts, info = solver.call_solver(loss_functions, variant_model,
+                                                       {key: data[key] for key in variant_comp_types})  # pass only necessary data
         # extract model/manufacturer from index
         for opt in opts:
             opt['indices'] = get_component_names_by_indices(opt['indices'], variant_model['components'], names)

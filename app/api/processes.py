@@ -89,7 +89,7 @@ def create_process():
     var_select_dict = {'processes_id': p.id, 'selection': json.dumps(proc['variant_selection'])}
     vs = VariantSelection(**var_select_dict)
     db.session.add(vs)
-    solver_dict = {'processes_id': p.id, 'code': proc['solver']}
+    solver_dict = {'processes_id': p.id, 'code': proc['solver']['code'], 'use_solver': proc['solver']['use_solver']}
     s = ProblemType(**solver_dict)
     db.session.add(s)
     for info_text in proc['infoTexts']:

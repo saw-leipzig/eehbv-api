@@ -188,12 +188,12 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, cId, process, lf, model, data):
+    def call_solver(self, cId, code, process, lf, model, data):
         if cId not in self.problems:
-            p = ProblemType.query.filter_by(processes_id=cId).first()
-            if p is None:
-                raise Exception('Problem not defined')
-            self.problems[cId] = import_code(p.code, process)
+            # p = ProblemType.query.filter_by(processes_id=cId).first()
+            # if p is None:
+            # raise Exception('Problem not defined')
+            self.problems[cId] = import_code(code, process)
         # time.sleep(16)  # for testing polling only
         return self.problems[cId].call_solver(lf, model, data)
 
@@ -229,8 +229,11 @@ class LossFuncWrapper:
                     raise Exception('Target function not defined')
                 code = lf.func.replace(TARGET_FUNC, TARGET_FUNC + '_' + str(lf.id))
                 self.loss_functions[lf.id] = import_code(code, process + '_id_' + str(lf.id))
-        return {lf.loss_functions_id: getattr(self.loss_functions[lf.loss_functions_id], TARGET_FUNC + '_' + str(lf.loss_functions_id))
+        return {lf.loss_functions_id: getattr(self.loss_functions[lf.loss_functions_id],
+                                              TARGET_FUNC + '_' + str(lf.loss_functions_id))
                 for lf in variant.variants_loss_functions}
+
+
 #        return {lf.position: getattr(self.loss_functions[lf.loss_functions_id], TARGET_FUNC + '_' + str(lf.loss_functions_id))
 #                for lf in variant.variants_loss_functions}
 
