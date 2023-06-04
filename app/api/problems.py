@@ -1,12 +1,10 @@
 import json
-import os
 import threading
-import solver
 from datetime import datetime
 from flask import request, current_app, Response, jsonify
 
 from ..decimalencoder import DecimalEncoder
-from app import db
+from app import db, solver
 from ..decorators import permission_required
 from ..models import ProblemWrapper, LossFuncWrapper, Variants, components, \
     Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission, ProblemType  # , TargetFuncWrapper

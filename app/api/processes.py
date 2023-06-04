@@ -58,7 +58,7 @@ def create_process():
         funcs[f.description] = f.id
     for param in proc['process']['process_parameters']:
         # param_dict = {**param, 'processes_id': p.id}
-        needed_param_entries = {key: param[key] for key in ['name', 'unit', 'variable_name', 'material_properties_id', 'dependent', 'derived_parameter', 'dependency']}
+        needed_param_entries = {key: param[key] for key in ['name', 'unit', 'variable_name', 'material_properties_id']}
         param_dict = {**needed_param_entries, 'defaults': '', 'general': False, 'processes_id': p.id}
         pp = ProcessParameters(**param_dict)
         db.session.add(pp)
@@ -137,3 +137,10 @@ def get_selection(cId):
     selection = VariantSelection.query.filter_by(processes_id=cId).first()
     # ToDo: error for id not found
     return Response(selection.selection, 200, mimetype='application/json')
+
+
+@api.route('/processes/used-component-types')
+def used_component_types():
+    components = VariantComponents.query.all()
+    distinct_used_apis = list(set([c.component_api_name for c in components]))
+    return jsonify(distinct_used_apis)

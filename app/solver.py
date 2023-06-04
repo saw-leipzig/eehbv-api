@@ -19,7 +19,6 @@ def call_solver(loss_func, model, data):
     cost_opts = []
 
     components = model['components']
-    # ToDo: eval dependent variables!
     update_losses(data, model, {}, loss_func, 0)
     wander_tree(1, model, components, {}, loss_func, data)
     return opts, cost_opts, 'no special remarks'
@@ -70,7 +69,7 @@ def update_losses(data, model, combination, lfs, depth):
                     if current_losses_key != lf['variable_name']:
                         exec(current_losses_key + ' = current_losses["' + current_losses_key + '"][' + str(pos) + ']')
                 # eval current loss
-                print('EXEC ' + lf['variable_name'] + ' = ' + lf['function_call'])
+                # print('EXEC ' + lf['variable_name'] + ' = ' + lf['function_call'])
                 exec(lf['variable_name'] + ' = ' + lf['function_call'])
                 # ToDo: view group
                 # pack current loss for deeper levels
@@ -96,18 +95,19 @@ def conditions_satisfied(model, combination, data, depth):
             try:
                 result = eval(cond)
                 if not result:
+                    # print('Condition evaluated to False: ' + cond)
                     return False
             except NameError as ex:  # conditions with missing vars have to be evaluated at a deeper level
                 print('Condition parameter not defined: ' + ex.args[0])
-    # check implicit conditions
-    for restr in model['restrictions']:
-        if depth == restr['eval_after_position']:
-            try:
-                result = eval(restr['restriction'])
-                if not result:
-                    return False
-            except NameError as ex:
-                print('Condition parameter not defined: ' + ex.args[0])
+        # check implicit conditions
+        for restr in model['restrictions']:
+            if depth == restr['eval_after_position']:
+                try:
+                    result = eval(restr['restriction'])
+                    if not result:
+                        return False
+                except NameError as ex:
+                    print('Condition parameter not defined: ' + ex.args[0])
     return True
 
 
