@@ -7,7 +7,7 @@ from ..decimalencoder import DecimalEncoder
 from app import db, solver
 from ..decorators import permission_required
 from ..models import ProblemWrapper, LossFuncWrapper, Variants, components, \
-    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission, ProblemType  # , TargetFuncWrapper
+    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission, ProblemType
 from . import api
 
 FINISHED = '/finished'
@@ -15,9 +15,9 @@ FAILED = '/failed'
 RESULT = '/result.json'
 REQUEST = '/problem.json'
 
-problems = ProblemWrapper()
+problem_dict = ProblemWrapper()
 # targetFunctions = TargetFuncWrapper()
-lossFunctions = LossFuncWrapper()
+loss_function_dict = LossFuncWrapper()
 
 
 @api.route('/problems/result/<timestamp>', methods=['GET'])
@@ -131,18 +131,18 @@ def threaded_solve(cApp, cId, process, model, date_time):
         db.session.commit()
 
 
-def load_data_and_solve(cId, process, model, date_time):
-    problem = ProblemType.query.filter_by(processes_id=cId).first()
+def load_data_and_solve(c_id, process, model, date_time):
+    problem = ProblemType.query.filter_by(processes_id=c_id).first()
     if problem is None:
         raise Exception('Problem not defined')
     variants = Variants.query. \
-        filter(Variants.processes_id == cId, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
+        filter(Variants.processes_id == c_id, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
     names, data = load_data(variants)
     component_keys = ['component_api_name', 'variable_name', 'description']
     counter = 0
     for v in variants:
         counter += 1
-        loss_functions = lossFunctions.get_functions(process, v)
+        loss_functions = loss_function_dict.get_functions(process, v)
         print(loss_functions)
         restrictions = load_restrictions(v.id)
         lf_model = [{'description': lf.description,
@@ -166,7 +166,7 @@ def load_data_and_solve(cId, process, model, date_time):
                          }
         variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
         if problem.use_solver:
-            opts, cost_opts, info = problems.call_solver(cId, problem.code, process, loss_functions, variant_model,
+            opts, cost_opts, info = problem_dict.call_solver(c_id, problem.code, process, loss_functions, variant_model,
                                                          {key: data[key] for key in variant_comp_types})  # pass only necessary data
         else:
             opts, cost_opts, info = solver.call_solver(loss_functions, variant_model,

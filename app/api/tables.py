@@ -1,7 +1,7 @@
 import json
 from flask import jsonify, request, Response, g, url_for, current_app
 from sqlalchemy import select
-from ..models import ColumnInfo, Components, create_new_component_table, Permission
+from ..models import ColumnInfo, Components, create_new_component_table, Permission, components
 from . import api
 from app import db
 from ..decorators import permission_required
@@ -71,6 +71,21 @@ def get_component_table(cId, component_type):
               'infos': sorted([info.as_dict() for info in infos],
                               key=lambda x: x['position'])}
     return c_type
+
+
+@api.route('/component-types/<cType>', methods=['DELETE'])
+@permission_required(Permission.OPT)
+def del_component_type(cType):
+    component_type = Components.query.filter_by(api_name=cType).first()
+    db.session.delete(component_type)   # entries in column_info are deleted by cascade
+    components[cType].__table__.drop()
+    db.session.commit()
+    components.pop(cType, None)
+    return jsonify({
+        'status': 'ok',
+        'table': 'components',
+        'deleted': cType
+    })
 
 
 @api.route('/component-infos')

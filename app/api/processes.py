@@ -1,6 +1,7 @@
 import json
 from flask import jsonify, request, Response
 from . import api
+from .problems import problem_dict, loss_function_dict
 from ..models import Processes, ProcessParameters, LossFunctions, VariantsLossFunctions, InfoTexts, Variants,\
     VariantComponents, VariantsRestrictions, Restrictions, VariantSelection, ProblemType, Permission
 from app import db
@@ -19,11 +20,14 @@ def delete_process(cId):
         }), 204
     db.session.delete(proc)
     db.session.commit()
+    problem_dict.remove_function(cId)
+    loss_function_dict.remove_functions(cId)
     return jsonify({
         'status': 'ok',
         'table': 'processes',
         'deleted': cId
     })
+
 
 @api.route('/processes')
 def get_processes():

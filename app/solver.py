@@ -128,7 +128,7 @@ def sum_losses(model):
     total = 0
     for current_losses_key in current_losses.keys():
         if function_is_loss(model, current_losses_key):
-            weighted_losses[current_losses_key] = sum(clk * profile['portion'] for clk, profile
+            weighted_losses[current_losses_key] = sum(clk * profile['portion'] / 1000. for clk, profile     # to kWh
                                                       in zip(current_losses[current_losses_key], model['process_profiles']))
             total += weighted_losses[current_losses_key]
     return total

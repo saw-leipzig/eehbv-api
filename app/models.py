@@ -109,7 +109,7 @@ class Users(db.Model, Serializable):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def generate_auth_token(self, expiration=7200):
+    def generate_auth_token(self, expiration=28800):
         s = Serializer(current_app.config['SECRET_KEY'],
                        expires_in=expiration)
         return s.dumps({'id': self.id, 'role': self.role}).decode('utf-8')
@@ -188,28 +188,14 @@ class ProblemWrapper:
     def __init__(self):
         self.problems = {}
 
-    def call_solver(self, cId, code, process, lf, model, data):
-        if cId not in self.problems:
-            # p = ProblemType.query.filter_by(processes_id=cId).first()
-            # if p is None:
-            # raise Exception('Problem not defined')
-            self.problems[cId] = import_code(code, process)
+    def call_solver(self, c_id, code, process, lf, model, data):
+        if c_id not in self.problems:
+            self.problems[c_id] = import_code(code, process)
         # time.sleep(16)  # for testing polling only
-        return self.problems[cId].call_solver(lf, model, data)
+        return self.problems[c_id].call_solver(lf, model, data)
 
-
-# class TargetFuncWrapper:
-#     def __init__(self):
-#         self.target_functions = {}
-#
-#     def get_func(self, pId, vId, process, variant):
-#         if pId not in self.target_functions:
-#             self.target_functions[pId] = {}
-#         if vId not in self.target_functions[pId]:
-#             if variant.target_func is None or variant.target_func == '':
-#                 raise Exception('Target function not defined')
-#             self.target_functions[pId][vId] = import_code(variant.target_func, process + '_' + str(vId))
-#         return self.target_functions[pId][vId].target_func
+    def remove_function(self, c_id):
+        self.problems.pop(c_id, None)
 
 
 class LossFuncWrapper:
@@ -233,6 +219,10 @@ class LossFuncWrapper:
                                               TARGET_FUNC + '_' + str(lf.loss_functions_id))
                 for lf in variant.variants_loss_functions}
 
+    def remove_functions(self, c_id):
+        lfs = LossFunctions.query.filter_by(processes_id=c_id)
+        for lf in lfs:
+            self.loss_functions.pop(lf.id, None)
 
 #        return {lf.position: getattr(self.loss_functions[lf.loss_functions_id], TARGET_FUNC + '_' + str(lf.loss_functions_id))
 #                for lf in variant.variants_loss_functions}
