@@ -78,7 +78,7 @@ def get_component_table(cId, component_type):
 def del_component_type(cType):
     component_type = Components.query.filter_by(api_name=cType).first()
     db.session.delete(component_type)   # entries in column_info are deleted by cascade
-    components[cType].__table__.drop()
+    db.engine.execute('drop table if exists {}'.format(component_type.table_name))
     db.session.commit()
     components.pop(cType, None)
     return jsonify({

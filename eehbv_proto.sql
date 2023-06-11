@@ -110,7 +110,7 @@ CREATE TABLE `column_info` (
   PRIMARY KEY (`id`),
   KEY `component_tables` (`component_id`),
   CONSTRAINT `component_tables` FOREIGN KEY (`component_id`) REFERENCES `components` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=113 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -145,8 +145,43 @@ INSERT INTO `column_info` VALUES
 (109,26,'p_50_50','P(50;50)','DOUBLE',10,''),
 (110,26,'p_50_100','P(50;100)','DOUBLE',11,''),
 (111,26,'p_90_50','P(90;50)','DOUBLE',12,''),
-(112,26,'p_90_100','P(90;100)','DOUBLE',13,'');
+(112,26,'p_90_100','P(90;100)','DOUBLE',13,''),
+(117,28,'name','Modell','VARCHAR',1,NULL),
+(118,28,'manufacturer','Hersteller','VARCHAR',2,NULL),
+(119,28,'price','Preis','DOUBLE',2,'Euro'),
+(120,28,'efficiency','Wirkungsgrad','DOUBLE',4,''),
+(121,28,'m_nominal','Nennmoment','DOUBLE',5,'Nm'),
+(122,28,'gear_ratio','Übersetzung','DOUBLE',6,''),
+(123,26,'f_nominal','Nennfrequenz','DOUBLE',14,'Hz');
 /*!40000 ALTER TABLE `column_info` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `component_gears`
+--
+
+DROP TABLE IF EXISTS `component_gears`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `component_gears` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(40) DEFAULT NULL,
+  `manufacturer` varchar(40) DEFAULT NULL,
+  `price` float DEFAULT NULL,
+  `efficiency` float DEFAULT NULL,
+  `m_nominal` float DEFAULT NULL,
+  `gear_ratio` float DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `component_gears`
+--
+
+LOCK TABLES `component_gears` WRITE;
+/*!40000 ALTER TABLE `component_gears` DISABLE KEYS */;
+/*!40000 ALTER TABLE `component_gears` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -247,6 +282,7 @@ CREATE TABLE `component_transformers` (
   `p_50_100` float DEFAULT NULL,
   `p_90_50` float DEFAULT NULL,
   `p_90_100` float DEFAULT NULL,
+  `f_nominal` double NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -258,44 +294,44 @@ CREATE TABLE `component_transformers` (
 LOCK TABLES `component_transformers` WRITE;
 /*!40000 ALTER TABLE `component_transformers` DISABLE KEYS */;
 INSERT INTO `component_transformers` VALUES
-(1,'FU1','gen_fu',500,0.12,0.278,33.79,33.84,34.3,33.89,34.04,34.84,34.39,35.85),
-(2,'FU2','gen_fu',510,0.18,0.381,25.24,25.28,25.75,25.34,25.48,26.28,25.83,27.3),
-(3,'FU3','gen_fu',510,0.25,0.5,19.74,19.78,20.25,19.84,19.99,20.78,20.34,21.8),
-(4,'FU4','gen_fu',520,0.37,0.697,14.77,14.82,15.29,14.87,15.02,15.82,15.37,16.84),
-(5,'FU5','gen_fu',520,0.55,0.977,11.14,11.19,11.66,11.24,11.39,12.19,11.74,13.21),
-(6,'FU6','gen_fu',530,0.75,1.29,8.96,9,9.47,9.06,9.2,10,9.55,11.02),
-(7,'FU7','gen_fu',530,1.1,1.71,6.86,7.13,7.82,6.93,7.33,8.4,7.68,9.51),
-(8,'FU8','gen_fu',540,1.5,2.29,5.56,5.83,6.52,5.63,6.03,7.1,6.38,8.21),
-(9,'FU9','gen_fu',540,2.2,3.3,4.54,4.82,5.51,4.61,5.02,6.09,5.37,7.2),
-(10,'FU10','gen_fu',550,3,4.44,4.07,4.35,5.04,4.14,4.55,5.62,4.9,6.72),
-(11,'FU11','gen_fu',560,4,5.85,3.74,4.02,4.71,3.82,4.22,5.29,4.57,6.39),
-(12,'FU12','gen_fu',570,5.5,7.94,3.35,3.63,4.32,3.42,3.83,4.9,4.18,6.01),
-(13,'FU13','gen_fu',580,7.5,9.95,2.8,3.09,4.02,2.86,3.28,4.64,3.61,5.84),
-(14,'FU14','gen_fu',580,11,14.4,2.39,2.68,3.61,2.46,2.87,4.23,3.2,5.43),
-(15,'FU15','gen_fu',590,15,19.5,2.15,2.44,3.37,2.22,2.63,3.99,2.96,5.18),
-(16,'FU16','gen_fu',600,18.5,23.9,2.02,2.32,3.24,2.09,2.51,3.86,2.83,5.05),
-(17,'FU17','gen_fu',610,22,28.3,1.94,2.23,3.16,2.01,2.43,3.78,2.75,4.97),
-(18,'FU18','gen_fu',620,30,38.2,1.83,2.12,3.05,1.9,2.31,3.67,2.64,4.87),
-(19,'FU19','gen_fu',630,37,47,1.76,2.05,2.98,1.83,2.24,3.6,2.57,4.79),
-(20,'FU20','gen_fu',640,45,56.9,1.71,2.01,2.93,1.78,2.2,3.55,2.52,4.75),
-(21,'FU21','gen_fu',660,55,68.4,1.62,1.93,2.9,1.7,2.13,3.53,2.47,4.74),
-(22,'FU22','gen_fu',680,75,92.8,1.58,1.88,2.85,1.65,2.08,3.48,0.242,4.69),
-(23,'FU23','gen_fu',690,90,111,1.55,1.86,2.82,1.62,2.05,3.45,2.39,4.66),
-(24,'FU24','gen_fu',700,110,135,1.24,1.48,2.27,1.32,1.68,2.91,2.02,4.11),
-(25,'FU25','gen_fu',700,132,162,1.23,1.47,2.26,1.3,1.67,2.89,2.01,4.1),
-(26,'FU26','gen_fu',710,160,196,1.22,1.46,2.25,1.29,1.66,2.88,2,4.09),
-(27,'FU27','gen_fu',710,200,245,1.21,1.45,2.24,1.28,1.65,2.87,1.98,4.07),
-(28,'FU28','gen_fu',720,250,302,1.17,1.42,2.24,1.24,1.61,2.88,1.95,4.1),
-(29,'FU29','gen_fu',720,315,302,1.16,1.41,2.23,1.23,1.61,2.87,1.94,4.09),
-(30,'FU30','gen_fu',730,355,429,1.16,1.41,2.23,1.12,1.6,2.87,1.94,4.09),
-(31,'FU31','gen_fu',740,400,483,1.16,1.41,2.23,1.23,16,2.87,1.94,4.09),
-(32,'FU32','gen_fu',740,500,604,1.15,1.4,2.22,1.22,1.6,2.86,1.94,4.08),
-(33,'FU33','gen_fu',750,560,677,1.15,1.4,2.22,1.22,1.6,2.86,1.93,4.08),
-(34,'FU34','gen_fu',760,630,761,1.15,1.4,2.22,1.22,1.6,2.86,1.3,4.08),
-(35,'FU35','gen_fu',770,710,858,1.15,1.4,2.22,1.22,1.59,2.86,1.93,4.08),
-(36,'FU36','gen_fu',780,800,967,1.15,1.4,2.22,1.22,1.59,2.86,1.93,4.08),
-(37,'FU37','gen_fu',790,900,1088,1.15,1.39,2.21,1.21,1.59,2.86,1.93,4.08),
-(38,'FU38','gen_fu',800,1000,1209,1.14,1.39,2.21,1.21,1.59,2.85,1.93,4.08);
+(1,'FU1','gen_fu',500,0.12,0.278,33.79,33.84,34.3,33.89,34.04,34.84,34.39,35.85,200),
+(2,'FU2','gen_fu',510,0.18,0.381,25.24,25.28,25.75,25.34,25.48,26.28,25.83,27.3,200),
+(3,'FU3','gen_fu',510,0.25,0.5,19.74,19.78,20.25,19.84,19.99,20.78,20.34,21.8,200),
+(4,'FU4','gen_fu',520,0.37,0.697,14.77,14.82,15.29,14.87,15.02,15.82,15.37,16.84,200),
+(5,'FU5','gen_fu',520,0.55,0.977,11.14,11.19,11.66,11.24,11.39,12.19,11.74,13.21,200),
+(6,'FU6','gen_fu',530,0.75,1.29,8.96,9,9.47,9.06,9.2,10,9.55,11.02,200),
+(7,'FU7','gen_fu',530,1.1,1.71,6.86,7.13,7.82,6.93,7.33,8.4,7.68,9.51,200),
+(8,'FU8','gen_fu',540,1.5,2.29,5.56,5.83,6.52,5.63,6.03,7.1,6.38,8.21,200),
+(9,'FU9','gen_fu',540,2.2,3.3,4.54,4.82,5.51,4.61,5.02,6.09,5.37,7.2,200),
+(10,'FU10','gen_fu',550,3,4.44,4.07,4.35,5.04,4.14,4.55,5.62,4.9,6.72,200),
+(11,'FU11','gen_fu',560,4,5.85,3.74,4.02,4.71,3.82,4.22,5.29,4.57,6.39,200),
+(12,'FU12','gen_fu',570,5.5,7.94,3.35,3.63,4.32,3.42,3.83,4.9,4.18,6.01,200),
+(13,'FU13','gen_fu',580,7.5,9.95,2.8,3.09,4.02,2.86,3.28,4.64,3.61,5.84,200),
+(14,'FU14','gen_fu',580,11,14.4,2.39,2.68,3.61,2.46,2.87,4.23,3.2,5.43,200),
+(15,'FU15','gen_fu',590,15,19.5,2.15,2.44,3.37,2.22,2.63,3.99,2.96,5.18,200),
+(16,'FU16','gen_fu',600,18.5,23.9,2.02,2.32,3.24,2.09,2.51,3.86,2.83,5.05,200),
+(17,'FU17','gen_fu',610,22,28.3,1.94,2.23,3.16,2.01,2.43,3.78,2.75,4.97,200),
+(18,'FU18','gen_fu',620,30,38.2,1.83,2.12,3.05,1.9,2.31,3.67,2.64,4.87,200),
+(19,'FU19','gen_fu',630,37,47,1.76,2.05,2.98,1.83,2.24,3.6,2.57,4.79,200),
+(20,'FU20','gen_fu',640,45,56.9,1.71,2.01,2.93,1.78,2.2,3.55,2.52,4.75,200),
+(21,'FU21','gen_fu',660,55,68.4,1.62,1.93,2.9,1.7,2.13,3.53,2.47,4.74,200),
+(22,'FU22','gen_fu',680,75,92.8,1.58,1.88,2.85,1.65,2.08,3.48,0.242,4.69,200),
+(23,'FU23','gen_fu',690,90,111,1.55,1.86,2.82,1.62,2.05,3.45,2.39,4.66,200),
+(24,'FU24','gen_fu',700,110,135,1.24,1.48,2.27,1.32,1.68,2.91,2.02,4.11,200),
+(25,'FU25','gen_fu',700,132,162,1.23,1.47,2.26,1.3,1.67,2.89,2.01,4.1,200),
+(26,'FU26','gen_fu',710,160,196,1.22,1.46,2.25,1.29,1.66,2.88,2,4.09,200),
+(27,'FU27','gen_fu',710,200,245,1.21,1.45,2.24,1.28,1.65,2.87,1.98,4.07,200),
+(28,'FU28','gen_fu',720,250,302,1.17,1.42,2.24,1.24,1.61,2.88,1.95,4.1,200),
+(29,'FU29','gen_fu',720,315,302,1.16,1.41,2.23,1.23,1.61,2.87,1.94,4.09,200),
+(30,'FU30','gen_fu',730,355,429,1.16,1.41,2.23,1.12,1.6,2.87,1.94,4.09,200),
+(31,'FU31','gen_fu',740,400,483,1.16,1.41,2.23,1.23,16,2.87,1.94,4.09,200),
+(32,'FU32','gen_fu',740,500,604,1.15,1.4,2.22,1.22,1.6,2.86,1.94,4.08,200),
+(33,'FU33','gen_fu',750,560,677,1.15,1.4,2.22,1.22,1.6,2.86,1.93,4.08,200),
+(34,'FU34','gen_fu',760,630,761,1.15,1.4,2.22,1.22,1.6,2.86,1.3,4.08,200),
+(35,'FU35','gen_fu',770,710,858,1.15,1.4,2.22,1.22,1.59,2.86,1.93,4.08,200),
+(36,'FU36','gen_fu',780,800,967,1.15,1.4,2.22,1.22,1.59,2.86,1.93,4.08,200),
+(37,'FU37','gen_fu',790,900,1088,1.15,1.39,2.21,1.21,1.59,2.86,1.93,4.08,200),
+(38,'FU38','gen_fu',800,1000,1209,1.14,1.39,2.21,1.21,1.59,2.85,1.93,4.08,200);
 /*!40000 ALTER TABLE `component_transformers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -314,7 +350,7 @@ CREATE TABLE `components` (
   `is_aggregate` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_api_name` (`api_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -325,7 +361,8 @@ LOCK TABLES `components` WRITE;
 /*!40000 ALTER TABLE `components` DISABLE KEYS */;
 INSERT INTO `components` VALUES
 (1,'component_motors','Motoren','motors',0),
-(26,'component_transformers','Frequenzumrichter','transformers',0);
+(26,'component_transformers','Frequenzumrichter','transformers',0),
+(28,'component_gears','Getriebe','gears',0);
 /*!40000 ALTER TABLE `components` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -411,7 +448,7 @@ CREATE TABLE `info_texts` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `info_ref_id` (`type_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -423,12 +460,12 @@ LOCK TABLES `info_texts` WRITE;
 INSERT INTO `info_texts` VALUES
 (1,1,1,3,'Prozess-spezifischer Infotext für Angabe der Prozessparameter von Kantenanleimmaschinen...'),
 (2,1,1,4,'Prozess-spezifischer Infotext für Angabe der Nebenbedingungen von Kantenanleimmaschinen...'),
-(3,1,9,3,'Hilfetext Prozessparameter'),
-(4,1,9,4,'Hilfetext Nebenbedingungen'),
-(5,1,10,3,'Hilfetext Prozessparameter'),
-(6,1,10,4,'Hilfetext Nebenbedingungen'),
-(7,1,11,3,'Hilfetext Prozessparameter'),
-(8,1,11,4,'Hilfetext Nebenbedingungen');
+(3,1,2,3,'Hilfetext Prozessparameter'),
+(4,1,2,4,'Hilfetext Nebenbedingungen'),
+(9,1,16,3,''),
+(10,1,16,4,''),
+(11,1,17,3,''),
+(12,1,17,4,'');
 /*!40000 ALTER TABLE `info_texts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -448,7 +485,7 @@ CREATE TABLE `loss_functions` (
   PRIMARY KEY (`id`),
   KEY `processes_loss_functions` (`processes_id`),
   CONSTRAINT `processes_loss_functions` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -504,18 +541,15 @@ CREATE TABLE `process_parameters` (
   `name` varchar(30) NOT NULL,
   `unit` varchar(15) NOT NULL,
   `general` tinyint(1) NOT NULL,
-  `variable_name` varchar(20) NOT NULL,
+  `variable_name` varchar(30) NOT NULL,
   `defaults` varchar(30) NOT NULL,
   `material_properties_id` int(11) DEFAULT NULL,
-  `dependent` tinyint(1) NOT NULL,
-  `derived_parameter` varchar(20) DEFAULT NULL,
-  `dependency` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `processes_parameters` (`processes_id`),
   KEY `process_parameters_properties` (`material_properties_id`),
   CONSTRAINT `process_parameters_properties` FOREIGN KEY (`material_properties_id`) REFERENCES `material_properties` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `processes_parameters` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -525,12 +559,12 @@ CREATE TABLE `process_parameters` (
 LOCK TABLES `process_parameters` WRITE;
 /*!40000 ALTER TABLE `process_parameters` DISABLE KEYS */;
 INSERT INTO `process_parameters` VALUES
-(1,1,'Werkstückdicke','mm',0,'p_part_width','',NULL,0,NULL,NULL),
-(2,1,'Werkstücklänge','cm',0,'p_part_length','',NULL,0,NULL,NULL),
-(3,1,'Fräsbreite','mm',0,'p_milling_width','',NULL,0,NULL,NULL),
-(4,1,'Frästiefe','mm',0,'p_milling_depth','',NULL,0,NULL,NULL),
-(5,1,'Spez. Schnittkraft','N/mm^1,5',0,'p_k_c05','',2,0,NULL,NULL),
-(6,1,'Zähne Kappsäge','',1,'p_teeth_clipping','12,16,20',NULL,0,NULL,NULL);
+(1,1,'Werkstückdicke','mm',0,'p_part_width','',NULL),
+(2,1,'Werkstücklänge','cm',0,'p_part_length','',NULL),
+(3,1,'Fräsbreite','mm',0,'p_milling_width','',NULL),
+(4,1,'Frästiefe','mm',0,'p_milling_depth','',NULL),
+(5,1,'Spez. Schnittkraft','N/mm^1,5',0,'p_k_c05','',2),
+(6,1,'Zähne Kappsäge','',1,'p_teeth_clipping','12,16,20',NULL);
 /*!40000 ALTER TABLE `process_parameters` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -549,7 +583,7 @@ CREATE TABLE `process_solvers` (
   PRIMARY KEY (`id`),
   KEY `processes_processsolvers` (`processes_id`),
   CONSTRAINT `processes_processsolvers` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -561,6 +595,30 @@ LOCK TABLES `process_solvers` WRITE;
 INSERT INTO `process_solvers` VALUES
 (1,1,'from math import *\r\nimport copy\r\n\r\ncurrent_losses = {}\r\nweighted_losses = {}\r\nindices = {}\r\nopts = []\r\ncost_opts = []\r\n\r\n\r\ndef call_solver(loss_func, model, data):\r\n    # ToDo: as class\r\n    global current_losses, weighted_losses, indices, opts, cost_opts\r\n    # reset -  problematic for several parallel requests\r\n    current_losses = {}\r\n    weighted_losses = {}\r\n    indices = {}\r\n    opts = []\r\n    cost_opts = []\r\n\r\n    components = model[\'components\']\r\n    update_losses(data, model, {}, loss_func, 0)\r\n    wander_tree(1, model, components, {}, loss_func, data)\r\n    return opts, cost_opts, \'no special remarks\'\r\n\r\n\r\ndef wander_tree(depth, model, components, combination, lfs, data):\r\n    current_comp_type = data[components[0][\'component_api_name\']]\r\n    global indices\r\n#    print(\'wander_tree - \' + str(depth))\r\n    # select new component\r\n    for index, comp in enumerate(current_comp_type):\r\n        var_name = components[0][\'variable_name\']\r\n        indices[var_name] = index\r\n        new_combination = {**combination, var_name: comp}\r\n        if conditions_satisfied(model, new_combination, data, depth):\r\n            update_losses(data, model, new_combination, lfs, depth)\r\n            # recursive decision\r\n            if len(components) > 1:\r\n                new_components = copy.copy(components)\r\n                new_components.pop(0)\r\n                wander_tree(depth + 1, model, new_components, new_combination, lfs, data)\r\n            else:\r\n                summarize_and_check_results(model, new_combination)\r\n\r\n\r\ndef update_losses(data, model, combination, lfs, depth):\r\n    global current_losses\r\n    # unpack variables and previous components\r\n    for general_key in model[\'general_parameters\']:\r\n        exec(general_key + \' = model[\"general_parameters\"][\"\' + general_key + \'\"]\')\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    for lf_key in lfs.keys():\r\n        exec(\'target_func_\' + str(lf_key) + \' = lfs[\' + str(lf_key) + \']\')\r\n    # eval losses to evaluated after newly selected component\r\n    for lf in model[\'loss_functions\']:\r\n        if lf[\'eval_after_position\'] == depth:\r\n            exec(\'current_losses[\"\' + lf[\'variable_name\'] + \'\"] = []\')  # reset loss list\r\n            for pos in range(len(model[\'process_profiles\'])):\r\n                parameter_set = model[\'process_profiles\'][pos]\r\n                for parameter_key in parameter_set.keys():\r\n                    # exec(parameter_key + \' = parameter_set[\"\' + parameter_key + \'\"]\')\r\n                    exec(parameter_key + \' = model[\"process_profiles\"][\' + str(pos) + \'][\"\' + parameter_key + \'\"]\')\r\n                # unpack previously evaluated losses\r\n                for current_losses_key in current_losses.keys():\r\n                    if current_losses_key != lf[\'variable_name\']:\r\n                        exec(current_losses_key + \' = current_losses[\"\' + current_losses_key + \'\"][\' + str(pos) + \']\')\r\n                # eval current loss\r\n                # print(\'EXEC \' + lf[\'variable_name\'] + \' = \' + lf[\'function_call\'])\r\n                exec(lf[\'variable_name\'] + \' = \' + lf[\'function_call\'])\r\n                # ToDo: view group\r\n                # pack current loss for deeper levels\r\n                exec(\'current_losses[\"\' + lf[\'variable_name\'] + \'\"].append(\' + lf[\'variable_name\'] + \')\')\r\n\r\n\r\ndef conditions_satisfied(model, combination, data, depth):\r\n    # noinspection DuplicatedCode\r\n    for data_key in data.keys():\r\n        exec(data_key + \' = data[\"\' + data_key + \'\"]\')\r\n    for comb_key in combination.keys():\r\n        exec(comb_key + \' = combination[\"\' + comb_key + \'\"]\')\r\n    for general_key in model[\'general_parameters\']:\r\n        exec(general_key + \' = model[\"general_parameters\"][\"\' + general_key + \'\"]\')\r\n    global current_losses\r\n    # check request conditions\r\n    for pos in range(len(model[\'process_profiles\'])):  # conditions have to be fulfilled for all profiles\r\n        for parameter_key in model[\'process_profiles\'][pos].keys():\r\n            exec(parameter_key + \' = model[\"process_profiles\"][\' + str(pos) + \'][\"\' + parameter_key + \'\"]\')\r\n        for current_losses_key in current_losses.keys():\r\n            exec(current_losses_key + \' = current_losses[\"\' + current_losses_key + \'\"][\' + str(pos) + \']\')\r\n        for cond in model[\'conditions\']:\r\n            try:\r\n                result = eval(cond)\r\n                if not result:\r\n                    # print(\'Condition evaluated to False: \' + cond)\r\n                    return False\r\n            except NameError as ex:  # conditions with missing vars have to be evaluated at a deeper level\r\n                print(\'Condition parameter not defined: \' + ex.args[0])\r\n        # check implicit conditions\r\n        for restr in model[\'restrictions\']:\r\n            if depth == restr[\'eval_after_position\']:\r\n                try:\r\n                    result = eval(restr[\'restriction\'])\r\n                    if not result:\r\n                        return False\r\n                except NameError as ex:\r\n                    print(\'Condition parameter not defined: \' + ex.args[0])\r\n    return True\r\n\r\n\r\ndef summarize_and_check_results(model, combination):\r\n    # new part\r\n    global current_losses\r\n    total = sum_losses(model)\r\n    # costs optimization\r\n    acquisition_costs = update_cost_opts(model, combination, total) if model[\'result_settings\'][\'costs_opt\'][\r\n        \'exec\'] else None\r\n    # sort current combination in optimal solutions\r\n    update_opts(model, total, acquisition_costs)\r\n\r\n\r\ndef sum_losses(model):\r\n    global current_losses\r\n    global weighted_losses\r\n    total = 0\r\n    for current_losses_key in current_losses.keys():\r\n        if function_is_loss(model, current_losses_key):\r\n            weighted_losses[current_losses_key] = sum(clk * profile[\'portion\'] for clk, profile\r\n                                                      in zip(current_losses[current_losses_key], model[\'process_profiles\']))\r\n            total += weighted_losses[current_losses_key]\r\n    return total\r\n\r\n\r\ndef update_cost_opts(model, combination, total):\r\n    global cost_opts\r\n    global indices\r\n    acquisition_costs = sum(comp[\'price\'] for comp in combination.values()) + model[\'result_settings\'][\'costs_opt\'][\'assembly_costs\']\r\n    energy_costs = total * model[\'result_settings\'][\'costs_opt\'][\'price_kwh\'] * model[\'result_settings\'][\'costs_opt\'][\'amortisation_time\']\r\n    inserted = False\r\n    for pos, old_opt in enumerate(cost_opts):\r\n        if old_opt[\'total_costs\'] > acquisition_costs + energy_costs:\r\n            cost_opts.insert(pos, build_cost_opt(model, total, acquisition_costs, energy_costs))\r\n            inserted = True\r\n            if len(cost_opts) > int(model[\'result_settings\'][\'n_list\']):\r\n                cost_opts.pop()\r\n            break\r\n    if len(cost_opts) < int(model[\'result_settings\'][\'n_list\']) and not inserted:\r\n        cost_opts.append(build_cost_opt(model, total, acquisition_costs, energy_costs))\r\n    return acquisition_costs\r\n\r\n\r\ndef build_cost_opt(model, total, acquisition_costs, energy_costs):\r\n    global weighted_losses\r\n    global indices\r\n    return {\'total_costs\': acquisition_costs + energy_costs,\r\n            \'acquisition_costs\': acquisition_costs,\r\n            \'energy_costs\': energy_costs,\r\n            \'total\': total,\r\n            \'partials\': {val[1]: {\'value\': val[0], \'aggregate\': val[2]} for val in\r\n                         partial_generator(model)},\r\n            \'indices\': copy.copy(indices)}\r\n\r\n\r\ndef update_opts(model, total, acquisition_costs):\r\n    global opts\r\n    inserted = False\r\n    for pos, old_opt in enumerate(opts):\r\n        if old_opt[\'total\'] > total:\r\n            opts.insert(pos, build_opt(model, total, acquisition_costs))\r\n            inserted = True\r\n            if len(opts) > int(model[\'result_settings\'][\'n_list\']):\r\n                opts.pop()\r\n            break\r\n    if len(opts) < int(model[\'result_settings\'][\'n_list\']) and not inserted:\r\n        opts.append(build_opt(model, total, acquisition_costs))\r\n\r\n\r\ndef build_opt(model, total, acquisition_costs):\r\n    global weighted_losses\r\n    global indices\r\n    return {\'acquisition_costs\': acquisition_costs,\r\n            \'total\': total,\r\n            \'partials\': {val[1]: {\'value\': val[0], \'aggregate\': val[2]} for val in\r\n                         partial_generator(model)},\r\n            \'indices\': copy.copy(indices)}\r\n\r\n\r\ndef description_and_aggregate_from_variable(model, var):\r\n    function_by_var = next(lf for lf in model[\'loss_functions\'] if lf[\'variable_name\'] == var)\r\n    return [function_by_var[\'description\'], function_by_var[\'aggregate\']]\r\n\r\n\r\ndef function_is_loss(model, var):\r\n    return all(lf[\'is_loss\'] for lf in model[\'loss_functions\'] if lf[\'variable_name\'] == var)\r\n\r\n\r\ndef partial_generator(model):\r\n    global weighted_losses\r\n    for key in weighted_losses.keys():\r\n        yield [weighted_losses[key]] + description_and_aggregate_from_variable(model, key)\r\n',0);
 /*!40000 ALTER TABLE `process_solvers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `process_sources`
+--
+
+DROP TABLE IF EXISTS `process_sources`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `process_sources` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `processes_id` int(11) NOT NULL,
+  `request` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `process_sources`
+--
+
+LOCK TABLES `process_sources` WRITE;
+/*!40000 ALTER TABLE `process_sources` DISABLE KEYS */;
+/*!40000 ALTER TABLE `process_sources` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -576,7 +634,7 @@ CREATE TABLE `processes` (
   `api_name` varchar(30) NOT NULL,
   `variant_tree` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -586,7 +644,7 @@ CREATE TABLE `processes` (
 LOCK TABLES `processes` WRITE;
 /*!40000 ALTER TABLE `processes` DISABLE KEYS */;
 INSERT INTO `processes` VALUES
-(1,'Kantenanleimmaschine','edge_banding',1),
+(1,'Test','test',1),
 (2,'Dummy-Prozess','dummy',0);
 /*!40000 ALTER TABLE `processes` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -645,7 +703,7 @@ CREATE TABLE `requests` (
   UNIQUE KEY `requests_timestamp` (`timestamp`),
   KEY `requests_processes_index` (`processes_id`),
   CONSTRAINT `requests_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -673,7 +731,7 @@ CREATE TABLE `restrictions` (
   PRIMARY KEY (`id`),
   KEY `restrictions_processes` (`processes_id`),
   CONSTRAINT `restrictions_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -763,7 +821,7 @@ CREATE TABLE `variant_components` (
   KEY `variant_components_api_name` (`component_api_name`),
   CONSTRAINT `variant_components` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variant_components_api_name` FOREIGN KEY (`component_api_name`) REFERENCES `components` (`api_name`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -793,7 +851,7 @@ CREATE TABLE `variant_selection` (
   PRIMARY KEY (`id`),
   KEY `process_variant_selection` (`processes_id`),
   CONSTRAINT `process_variant_selection` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -821,7 +879,7 @@ CREATE TABLE `variants` (
   PRIMARY KEY (`id`),
   KEY `variants_process` (`processes_id`),
   CONSTRAINT `variants_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -879,7 +937,7 @@ CREATE TABLE `variants_loss_functions` (
   KEY `loss_functions_variants_loss_functions` (`loss_functions_id`),
   CONSTRAINT `loss_functions_variants_loss_functions` FOREIGN KEY (`loss_functions_id`) REFERENCES `loss_functions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variants_variants_loss_functions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -911,7 +969,7 @@ CREATE TABLE `variants_restrictions` (
   KEY `restrictions_variants_restrictions` (`restrictions_id`),
   CONSTRAINT `restrictions_variants_restrictions` FOREIGN KEY (`restrictions_id`) REFERENCES `restrictions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `variants_variants_restrictions` FOREIGN KEY (`variants_id`) REFERENCES `variants` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -932,4 +990,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-06-04 12:59:18
+-- Dump completed on 2023-06-11 20:44:24

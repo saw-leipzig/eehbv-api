@@ -3,7 +3,7 @@ from flask import jsonify, request, Response
 from . import api
 from .problems import problem_dict, loss_function_dict
 from ..models import Processes, ProcessParameters, LossFunctions, VariantsLossFunctions, InfoTexts, Variants,\
-    VariantComponents, VariantsRestrictions, Restrictions, VariantSelection, ProblemType, Permission
+    VariantComponents, VariantsRestrictions, Restrictions, VariantSelection, ProblemType, Permission, ProcessSources
 from app import db
 from ..decorators import permission_required
 
@@ -18,6 +18,9 @@ def delete_process(cId):
             'table': 'processes',
             'id': cId
         }), 204
+    variants = Variants.query.filter_by(processes_id=cId)
+    for variant in variants:
+        db.session.delete(variant)
     db.session.delete(proc)
     db.session.commit()
     problem_dict.remove_function(cId)
@@ -100,6 +103,10 @@ def create_process():
         info_dict = {**info_text, 'type_id': p.id}
         i = InfoTexts(**info_dict)
         db.session.add(i)
+    db.session.commit()
+    process_source = {'processes_id': p.id, 'request': json.dumps(proc)}
+    ps = ProcessSources(**process_source)
+    db.session.add(ps)
     db.session.commit()
     new_process = get_process_raw(p.id)
     return Response(json.dumps(new_process.as_dict()), mimetype='application/json')

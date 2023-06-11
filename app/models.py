@@ -27,9 +27,13 @@ class ProcessParameters(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['process_parameters']
 
 
+class ProcessSources(db.Model, Serializable):       # this table is only for testing purposes, contains requests to create process type
+    __table__ = db.Model.metadata.tables['process_sources']
+
+
 class Processes(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['processes']
-    process_parameters = db.relationship('ProcessParameters', lazy=False)
+    process_parameters = db.relationship('ProcessParameters', lazy=False, cascade="all, delete-orphan")
 
 
 class ProblemType(db.Model, Serializable):
@@ -42,8 +46,8 @@ class InfoTexts(db.Model, Serializable):
 
 class Variants(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variants']
-    variant_components = db.relationship('VariantComponents', lazy=False)
-    variants_loss_functions = db.relationship('VariantsLossFunctions', lazy=False)
+    variant_components = db.relationship('VariantComponents', lazy=False, cascade="all, delete-orphan")
+    variants_loss_functions = db.relationship('VariantsLossFunctions', lazy=False, cascade="all, delete-orphan")
 
 
 class VariantComponents(db.Model, Serializable):
