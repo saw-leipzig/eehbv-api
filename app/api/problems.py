@@ -28,7 +28,9 @@ def get_result(timestamp):
     if req.status == 0:
         return Response('{"status": "pending"}', 200, mimetype='application/json')
     resp = json.loads(req.result)
-    resp['status'] = 'Finished' if req.status == 2 else 'Processing'
+    if req.status == -1:
+        return Response(json.dumps(resp), 202, mimetype='application/json')
+    resp['status'] = 'finished' if req.status == 2 else 'processing'
     resp['request'] = json.loads(req.request)
     return Response(json.dumps(resp, cls=DecimalEncoder), 200, mimetype='application/json')
 
@@ -125,8 +127,9 @@ def threaded_solve(cApp, cId, process, model, date_time):
     try:
         with cApp.app_context():  # provide context for this thread
             load_data_and_solve(cId, process, model, date_time)
-    except BaseException as e:
+    except Exception as e:
         req = Requests.query.filter(Requests.timestamp == date_time).first()
+        req.result = json.dumps({'status': 'failed', 'message': str(e)})
         req.status = -1
         db.session.commit()
 
