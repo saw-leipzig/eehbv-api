@@ -64,9 +64,9 @@ def create_process():
         db.session.commit()
         funcs[f.description] = f.id
     for param in proc['process']['process_parameters']:
-        # param_dict = {**param, 'processes_id': p.id}
-        needed_param_entries = {key: param[key] for key in ['name', 'unit', 'variable_name', 'material_properties_id']}
-        param_dict = {**needed_param_entries, 'defaults': '', 'general': False, 'processes_id': p.id}
+        param_dict = {**param, 'processes_id': p.id}
+        # needed_param_entries = {key: param[key] for key in ['name', 'unit', 'variable_name', 'material_properties_id', 'defaults', 'general']}
+        # param_dict = {**needed_param_entries, 'processes_id': p.id}
         pp = ProcessParameters(**param_dict)
         db.session.add(pp)
     db.session.commit()
