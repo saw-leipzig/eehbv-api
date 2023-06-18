@@ -696,7 +696,7 @@ CREATE TABLE `requests` (
   UNIQUE KEY `requests_timestamp` (`timestamp`),
   KEY `requests_processes_index` (`processes_id`),
   CONSTRAINT `requests_processes` FOREIGN KEY (`processes_id`) REFERENCES `processes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=237 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=239 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -736,19 +736,19 @@ LOCK TABLES `restrictions` WRITE;
 INSERT INTO `restrictions` VALUES
 (28,21,'0 <= c_pre_motor[\'p_nominal\'] - p_wear_factor * l_pre_pow_max',1,'Vorfräsmotorleistung'),
 (29,21,'0 <= c_pre_motor[\'n_nominal\'] - p_pre_n',1,'Vorfräsmotordrehzahl'),
-(30,21,'0 >= abs( c_pre_converter[\'p_nominal\'] - c_pre_motor[\'p_nominal\']) / c_pre_converter[\'p_nominal\'] - 10',2,'Vorfräsumrichterleistung'),
+(30,21,'0 >= abs( c_pre_converter[\'p_nominal\'] - c_pre_motor[\'p_nominal\']) / c_pre_converter[\'p_nominal\'] - 0.1',2,'Vorfräsumrichterleistung'),
 (31,21,'0 <= c_pre_converter[\'f_nominal\'] * 60 - p_pre_n',2,'Vorfräsumrichterfrequenz'),
 (32,21,'0 <= c_trim_motor[\'p_nominal\'] - l_trim_pow_max * p_wear_factor',3,'Kappmotorleistung'),
 (33,21,'0 <= c_trim_motor[\'n_nominal\'] - p_trim_n',3,'Kappmotordrehzahl'),
-(34,21,'0 >= abs( c_trim_converter[\'p_nominal\'] - c_trim_motor[\'p_nominal\']) / c_trim_converter[\'p_nominal\'] - 10',4,'Kappumrichterleistung'),
+(34,21,'0 >= abs( c_trim_converter[\'p_nominal\'] - c_trim_motor[\'p_nominal\']) / c_trim_converter[\'p_nominal\'] - 0.1',4,'Kappumrichterleistung'),
 (35,21,'0 <= c_trim_converter[\'f_nominal\'] * 60 - p_trim_n',4,'Kappumrichterfrequenz'),
 (36,21,'0 <= c_flush_motor[\'p_nominal\'] - l_flush_pow_max * p_wear_factor',5,'Bündigmotorleistung'),
 (37,21,'0 <= c_flush_motor[\'n_nominal\'] - p_flush_n',5,'Bündigmotordrehzahl'),
-(38,21,'0 >= abs( c_flush_converter[\'p_nominal\'] - c_flush_motor[\'p_nominal\']) / c_flush_converter[\'p_nominal\'] - 10',6,'Bündigumrichterleistung'),
+(38,21,'0 >= abs( c_flush_converter[\'p_nominal\'] - c_flush_motor[\'p_nominal\']) / c_flush_converter[\'p_nominal\'] - 0.1',6,'Bündigumrichterleistung'),
 (39,21,'0 <= c_flush_converter[\'f_nominal\'] * 60 - p_flush_n',6,'Bündigumrichterfrequenz'),
 (40,21,'0 <= c_round_motor[\'p_nominal\'] - l_round_pow_max * p_wear_factor',7,'Radienmotorleistung'),
 (41,21,'0 <= c_round_motor[\'n_nominal\'] - p_round_n',7,'Radienmotordrehzahl'),
-(42,21,'0 >= abs( c_round_converter[\'p_nominal\'] - c_round_motor[\'p_nominal\']) / c_round_converter[\'p_nominal\'] - 10',8,'Radienumrichterleistung'),
+(42,21,'0 >= abs( c_round_converter[\'p_nominal\'] - c_round_motor[\'p_nominal\']) / c_round_converter[\'p_nominal\'] - 0.1',8,'Radienumrichterleistung'),
 (43,21,'0 <= c_round_converter[\'f_nominal\'] * 60 - p_round_n',8,'Radienumrichterfrequenz'),
 (44,21,'0 <= c_feed_gears[\'m_nominal\'] - l_feed_m',10,'Vortriebgetriebemoment'),
 (45,21,'0 <= c_feed_motor[\'p_nominal\'] - l_feed_pow - l_feed_gear_loss',10,'Vortriebmotorleistung'),
@@ -1072,4 +1072,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-06-18 13:54:48
+-- Dump completed on 2023-06-18 14:21:31
