@@ -192,6 +192,7 @@ def load_data_and_solve(c_id, process, model, date_time):
                 print(failed_restriction['restriction'])
             persist_variant_opts(v.name, opts, cost_opts, failed_restriction, info, date_time, counter == len(variants))
     except Exception as e:
+        print(e.args)
         req = Requests.query.filter(Requests.timestamp == date_time).first()
         req.result = json.dumps({'status': 'failed', 'message': str(e)})
         req.status = -1
