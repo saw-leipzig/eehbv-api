@@ -1,39 +1,58 @@
 from math import *
 import copy
+import time
 
-current_losses = {}
+cl = {}     # current_losses
 weighted_losses = {}
 indices = {}
 opts = []
 cost_opts = []
+selects = 0
+satisfied = 0
+deepest_failed_restriction = {}
+timing = 0.0
 
 
 def call_solver(loss_func, model, data):
     # ToDo: as class
-    global current_losses, weighted_losses, indices, opts, cost_opts
+    global cl, weighted_losses, indices, opts, cost_opts, selects, satisfied, timing, deepest_failed_restriction
     # reset -  problematic for several parallel requests
-    current_losses = {}
+    cl = {}
     weighted_losses = {}
     indices = {}
     opts = []
     cost_opts = []
+    selects = 0
+    satisfied = 0
+    timing = 0.0
+    deepest_failed_restriction = {'depth': 0, 'restriction': ''}
 
+    tic = time.perf_counter()
     components = model['components']
     update_losses(data, model, {}, loss_func, 0)
     wander_tree(1, model, components, {}, loss_func, data)
-    return opts, cost_opts, 'no special remarks'
+    print('selected')
+    print(selects)
+    print('satisfied')
+    print(satisfied)
+    timing += time.perf_counter() - tic
+    print('timing')
+    print(timing)
+    return opts, cost_opts, deepest_failed_restriction, 'no special remarks'
 
 
 def wander_tree(depth, model, components, combination, lfs, data):
     current_comp_type = data[components[0]['component_api_name']]
-    global indices
+    global indices, selects
 #    print('wander_tree - ' + str(depth))
     # select new component
     for index, comp in enumerate(current_comp_type):
         var_name = components[0]['variable_name']
         indices[var_name] = index
         new_combination = {**combination, var_name: comp}
-        if conditions_satisfied(model, new_combination, data, depth):
+        selects += 1
+        cd = conditions_satisfied(model, new_combination, data, depth)
+        if cd:
             update_losses(data, model, new_combination, lfs, depth)
             # recursive decision
             if len(components) > 1:
@@ -45,12 +64,17 @@ def wander_tree(depth, model, components, combination, lfs, data):
 
 
 def update_losses(data, model, combination, lfs, depth):
-    global current_losses
+    global cl, satisfied
+    if depth > 0:
+        satisfied += 1
     # unpack variables and previous components
+    p = {}
     for general_key in model['general_parameters']:
-        exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
-    for data_key in data.keys():
-        exec(data_key + ' = data["' + data_key + '"]')
+        p[general_key] = model["general_parameters"][general_key]
+    # for general_key in model['general_parameters']:
+    #     exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
+    # for data_key in data.keys():
+    #     exec(data_key + ' = data["' + data_key + '"]')
     for comb_key in combination.keys():
         exec(comb_key + ' = combination["' + comb_key + '"]')
     for lf_key in lfs.keys():
@@ -58,39 +82,50 @@ def update_losses(data, model, combination, lfs, depth):
     # eval losses to evaluated after newly selected component
     for lf in model['loss_functions']:
         if lf['eval_after_position'] == depth:
-            exec('current_losses["' + lf['variable_name'] + '"] = []')  # reset loss list
+            exec('cl["' + lf['variable_name'] + '"] = []')  # reset loss list
             for pos in range(len(model['process_profiles'])):
-                parameter_set = model['process_profiles'][pos]
-                for parameter_key in parameter_set.keys():
-                    # exec(parameter_key + ' = parameter_set["' + parameter_key + '"]')
-                    exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
+                for parameter_key in model['process_profiles'][pos].keys():
+                    p[parameter_key] = model["process_profiles"][pos][parameter_key]
+                    # exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
                 # unpack previously evaluated losses
-                for current_losses_key in current_losses.keys():
+                l = {}
+                for current_losses_key in cl.keys():
                     if current_losses_key != lf['variable_name']:
-                        exec(current_losses_key + ' = current_losses["' + current_losses_key + '"][' + str(pos) + ']')
+                        l[current_losses_key] = cl[current_losses_key][pos]
+                # for current_losses_key in cl.keys():
+                #     if current_losses_key != lf['variable_name']:
+                #         exec(current_losses_key + ' = cl["' + current_losses_key + '"][' + str(pos) + ']')
                 # eval current loss
                 # print('EXEC ' + lf['variable_name'] + ' = ' + lf['function_call'])
                 exec(lf['variable_name'] + ' = ' + lf['function_call'])
                 # ToDo: view group
                 # pack current loss for deeper levels
-                exec('current_losses["' + lf['variable_name'] + '"].append(' + lf['variable_name'] + ')')
+                exec('cl["' + lf['variable_name'] + '"].append(' + lf['variable_name'] + ')')
 
 
 def conditions_satisfied(model, combination, data, depth):
     # noinspection DuplicatedCode
-    for data_key in data.keys():
-        exec(data_key + ' = data["' + data_key + '"]')
+    # for data_key in data.keys():
+    #     exec(data_key + ' = data["' + data_key + '"]')
     for comb_key in combination.keys():
         exec(comb_key + ' = combination["' + comb_key + '"]')
+    p = {}
     for general_key in model['general_parameters']:
-        exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
-    global current_losses
+        p[general_key] = model["general_parameters"][general_key]
+    # for general_key in model['general_parameters']:
+    #     exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
+    global cl, deepest_failed_restriction, timing
     # check request conditions
     for pos in range(len(model['process_profiles'])):  # conditions have to be fulfilled for all profiles
         for parameter_key in model['process_profiles'][pos].keys():
-            exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
-        for current_losses_key in current_losses.keys():
-            exec(current_losses_key + ' = current_losses["' + current_losses_key + '"][' + str(pos) + ']')
+            p[parameter_key] = model["process_profiles"][pos][parameter_key]
+        # for parameter_key in model['process_profiles'][pos].keys():
+        #     exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
+        l = {}
+        for current_losses_key in cl.keys():
+            l[current_losses_key] = cl[current_losses_key][pos]
+        # for current_losses_key in cl.keys():
+        #     exec(current_losses_key + ' = cl["' + current_losses_key + '"][' + str(pos) + ']')
         for cond in model['conditions']:
             try:
                 result = eval(cond)
@@ -105,6 +140,9 @@ def conditions_satisfied(model, combination, data, depth):
                 try:
                     result = eval(restr['restriction'])
                     if not result:
+                        if depth > deepest_failed_restriction['depth']:
+                            deepest_failed_restriction['depth'] = depth
+                            deepest_failed_restriction['restriction'] = restr['description']
                         return False
                 except NameError as ex:
                     print('Condition parameter not defined: ' + ex.args[0])
@@ -113,7 +151,6 @@ def conditions_satisfied(model, combination, data, depth):
 
 def summarize_and_check_results(model, combination):
     # new part
-    global current_losses
     total = sum_losses(model)
     # costs optimization
     acquisition_costs = update_cost_opts(model, combination, total) if model['result_settings']['costs_opt'][
@@ -123,13 +160,13 @@ def summarize_and_check_results(model, combination):
 
 
 def sum_losses(model):
-    global current_losses
+    global cl
     global weighted_losses
     total = 0
-    for current_losses_key in current_losses.keys():
+    for current_losses_key in cl.keys():
         if function_is_loss(model, current_losses_key):
             weighted_losses[current_losses_key] = sum(clk * profile['portion'] / 1000. for clk, profile     # to kWh
-                                                      in zip(current_losses[current_losses_key], model['process_profiles']))
+                                                      in zip(cl[current_losses_key], model['process_profiles']))
             total += weighted_losses[current_losses_key]
     return total
 
@@ -182,8 +219,8 @@ def build_opt(model, total, acquisition_costs):
     global weighted_losses
     global indices
     return {'acquisition_costs': acquisition_costs,
-            'total': total,
-            'partials': {val[1]: {'value': val[0], 'aggregate': val[2]} for val in
+            'total': round(total),
+            'partials': {val[1]: {'value': round(val[0]), 'aggregate': val[2]} for val in
                          partial_generator(model)},
             'indices': copy.copy(indices)}
 
