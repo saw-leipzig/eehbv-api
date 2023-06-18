@@ -154,7 +154,7 @@ def load_data_and_solve(c_id, process, model, date_time):
             restrictions = load_restrictions(v.id)
             lf_model = [{'description': lf.description,
                          'eval_after_position': lf.eval_after_position,
-                         'function_call': TARGET_FUNC + '_' + str(lf.loss_functions_id) + wrap_function_parameters(lf.parameter_list),
+                         'function_call': "lfs[" + str(lf.loss_functions_id) + "]" + wrap_function_parameters(lf.parameter_list),
                          'position': lf.position,
                          'variable_name': lf.variable_name,
                          'aggregate': lf.aggregate,
@@ -224,10 +224,19 @@ def get_component_names_by_indices(ids, comps, names):
 
 
 def wrap_function_parameters(sig):
-    return "(" + ", ".join([("l['" + p + "']") if p.startswith("l_") else (("p['" + p + "']") if p.startswith("p_") else p)
-                            for p in sig[1:-1].split(", ")]) + ")"
+    return "(" + ", ".join([("l['" + p[0] + "']") if p[0].startswith("l_")
+                            else (("p['" + p[0] + "']") if p[0].startswith("p_")
+                                  else (("combinations['" + p[0] + "'][" + p[1]) if p[0].startswith("c_") else p[0]))
+                            for p in [s.split("[") for s in sig[1:-1].split(", ")]]) + ")"
+
+
+# def wrap_restriction_parameters(restr):
+#     return " ".join([("l['" + r + "']") if r.startswith("l_") else (("p['" + r + "']") if r.startswith("p_") else r)
+#                      for r in restr.split(" ")])
 
 
 def wrap_restriction_parameters(restr):
-    return " ".join([("l['" + r + "']") if r.startswith("l_") else (("p['" + r + "']") if r.startswith("p_") else r)
-                     for r in restr.split(" ")])
+    return " ".join([("l['" + r[0] + "']") if r[0].startswith("l_")
+                     else (("p['" + r[0] + "']") if r[0].startswith("p_")
+                           else (("combinations['" + r[0] + "'][" + r[1]) if r[0].startswith("c_") else r[0]))
+                     for r in [s.split("[") for s in restr.split(" ")]])

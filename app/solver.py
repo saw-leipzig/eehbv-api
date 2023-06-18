@@ -29,7 +29,7 @@ def call_solver(loss_func, model, data):
 
     tic = time.perf_counter()
     components = model['components']
-    update_losses(data, model, {}, loss_func, 0)
+    update_losses(model, {}, loss_func, 0)
     wander_tree(1, model, components, {}, loss_func, data)
     print('selected')
     print(selects)
@@ -51,9 +51,9 @@ def wander_tree(depth, model, components, combination, lfs, data):
         indices[var_name] = index
         new_combination = {**combination, var_name: comp}
         selects += 1
-        cd = conditions_satisfied(model, new_combination, data, depth)
+        cd = conditions_satisfied(model, new_combination, depth)
         if cd:
-            update_losses(data, model, new_combination, lfs, depth)
+            update_losses(model, new_combination, lfs, depth)
             # recursive decision
             if len(components) > 1:
                 new_components = copy.copy(components)
@@ -63,22 +63,14 @@ def wander_tree(depth, model, components, combination, lfs, data):
                 summarize_and_check_results(model, new_combination)
 
 
-def update_losses(data, model, combination, lfs, depth):
+def update_losses(model, combinations, lfs, depth):
     global cl, satisfied
     if depth > 0:
         satisfied += 1
-    # unpack variables and previous components
+    # unpack variables
     p = {}
     for general_key in model['general_parameters']:
         p[general_key] = model["general_parameters"][general_key]
-    # for general_key in model['general_parameters']:
-    #     exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
-    # for data_key in data.keys():
-    #     exec(data_key + ' = data["' + data_key + '"]')
-    for comb_key in combination.keys():
-        exec(comb_key + ' = combination["' + comb_key + '"]')
-    for lf_key in lfs.keys():
-        exec('target_func_' + str(lf_key) + ' = lfs[' + str(lf_key) + ']')
     # eval losses to evaluated after newly selected component
     for lf in model['loss_functions']:
         if lf['eval_after_position'] == depth:
@@ -86,15 +78,11 @@ def update_losses(data, model, combination, lfs, depth):
             for pos in range(len(model['process_profiles'])):
                 for parameter_key in model['process_profiles'][pos].keys():
                     p[parameter_key] = model["process_profiles"][pos][parameter_key]
-                    # exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
                 # unpack previously evaluated losses
                 l = {}
                 for current_losses_key in cl.keys():
                     if current_losses_key != lf['variable_name']:
                         l[current_losses_key] = cl[current_losses_key][pos]
-                # for current_losses_key in cl.keys():
-                #     if current_losses_key != lf['variable_name']:
-                #         exec(current_losses_key + ' = cl["' + current_losses_key + '"][' + str(pos) + ']')
                 # eval current loss
                 # print('EXEC ' + lf['variable_name'] + ' = ' + lf['function_call'])
                 exec(lf['variable_name'] + ' = ' + lf['function_call'])
@@ -103,29 +91,19 @@ def update_losses(data, model, combination, lfs, depth):
                 exec('cl["' + lf['variable_name'] + '"].append(' + lf['variable_name'] + ')')
 
 
-def conditions_satisfied(model, combination, data, depth):
+def conditions_satisfied(model, combinations, depth):
     # noinspection DuplicatedCode
-    # for data_key in data.keys():
-    #     exec(data_key + ' = data["' + data_key + '"]')
-    for comb_key in combination.keys():
-        exec(comb_key + ' = combination["' + comb_key + '"]')
     p = {}
     for general_key in model['general_parameters']:
         p[general_key] = model["general_parameters"][general_key]
-    # for general_key in model['general_parameters']:
-    #     exec(general_key + ' = model["general_parameters"]["' + general_key + '"]')
     global cl, deepest_failed_restriction, timing
     # check request conditions
     for pos in range(len(model['process_profiles'])):  # conditions have to be fulfilled for all profiles
         for parameter_key in model['process_profiles'][pos].keys():
             p[parameter_key] = model["process_profiles"][pos][parameter_key]
-        # for parameter_key in model['process_profiles'][pos].keys():
-        #     exec(parameter_key + ' = model["process_profiles"][' + str(pos) + ']["' + parameter_key + '"]')
         l = {}
         for current_losses_key in cl.keys():
             l[current_losses_key] = cl[current_losses_key][pos]
-        # for current_losses_key in cl.keys():
-        #     exec(current_losses_key + ' = cl["' + current_losses_key + '"][' + str(pos) + ']')
         for cond in model['conditions']:
             try:
                 result = eval(cond)
@@ -133,7 +111,7 @@ def conditions_satisfied(model, combination, data, depth):
                     # print('Condition evaluated to False: ' + cond)
                     return False
             except NameError as ex:  # conditions with missing vars have to be evaluated at a deeper level
-                print('Condition parameter not defined: ' + ex.args[0])
+                pass    # print('Condition parameter not defined: ' + ex.args[0])
         # check implicit conditions
         for restr in model['restrictions']:
             if depth == restr['eval_after_position']:
