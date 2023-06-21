@@ -1,5 +1,6 @@
 import copy
 import time
+from math import *  # for exec calls of conditions
 
 
 def call_solver(loss_func, model, data):
@@ -188,3 +189,8 @@ class ProblemSolver:
     def partial_generator(self):
         for key in self.weighted_losses.keys():
             yield [self.weighted_losses[key]] + self.description_and_aggregate_from_variable(key)
+
+    def get_remarks(self):
+        if len(self.model['process_profiles']) > 1 and 'p_feed_speed' in self.model['process_profiles'][0]:
+            return 'p_feed_speed'
+        return 'no special remarks'
