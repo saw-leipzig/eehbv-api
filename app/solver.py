@@ -16,6 +16,7 @@ class ProblemSolver:
         self.data = data
         self.cl = {}
         self.weighted_losses = {}
+        self.weighted_losses_per_profile = {}
         self.indices = {}
         self.opts = []
         self.cost_opts = []
@@ -131,8 +132,11 @@ class ProblemSolver:
         total = 0
         for current_losses_key in self.cl.keys():
             if self.function_is_loss(current_losses_key):
-                self.weighted_losses[current_losses_key] = sum(clk * profile['portion'] / 1000. for clk, profile     # to kWh
-                                                               in zip(self.cl[current_losses_key], self.model['process_profiles']))
+                self.weighted_losses_per_profile[current_losses_key] = [clk * profile['portion'] / 1000. for clk, profile     # to kWh
+                                                                        in zip(self.cl[current_losses_key], self.model['process_profiles'])]
+                self.weighted_losses[current_losses_key] = sum(self.weighted_losses_per_profile[current_losses_key])
+                # self.weighted_losses[current_losses_key] = sum(clk * profile['portion'] / 1000. for clk, profile     # to kWh
+                #                                                in zip(self.cl[current_losses_key], self.model['process_profiles']))
                 total += self.weighted_losses[current_losses_key]
         return total
 
@@ -175,7 +179,7 @@ class ProblemSolver:
     def build_opt(self, total, acquisition_costs):
         return {'acquisition_costs': acquisition_costs,
                 'total': round(total),
-                'partials': {val[1]: {'value': round(val[0]), 'aggregate': val[2]} for val in
+                'partials': {val[1]: {'value': round(val[0]), 'aggregate': val[2], 'per_profile': [round(pp) for pp in val[3]]} for val in
                              self.partial_generator()},
                 'indices': copy.copy(self.indices)}
 
@@ -188,7 +192,8 @@ class ProblemSolver:
 
     def partial_generator(self):
         for key in self.weighted_losses.keys():
-            yield [self.weighted_losses[key]] + self.description_and_aggregate_from_variable(key)
+            yield [self.weighted_losses[key]] + self.description_and_aggregate_from_variable(key) +\
+                  [self.weighted_losses_per_profile[key]]
 
     def get_remarks(self):
         if len(self.model['process_profiles']) > 1 and 'p_feed_speed' in self.model['process_profiles'][0]:
