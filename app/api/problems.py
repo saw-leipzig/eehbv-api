@@ -7,7 +7,7 @@ from ..decimalencoder import DecimalEncoder
 from app import db, solver
 from ..decorators import permission_required
 from ..models import ProblemWrapper, LossFuncWrapper, Variants, components, \
-    Requests, Restrictions, VariantsRestrictions, TARGET_FUNC, Permission, ProblemType
+    Requests, Restrictions, TARGET_FUNC, Permission, ProblemType
 from . import api
 
 FINISHED = '/finished'
@@ -151,7 +151,7 @@ def load_data_and_solve(c_id, process, model, date_time):
             counter += 1
             loss_functions = loss_function_dict.get_functions(process, v)
             print(loss_functions)
-            restrictions = load_restrictions(v.id)
+            restrictions = load_restrictions(v.restrictions)
             lf_model = [{'description': lf.description,
                          'eval_after_position': lf.eval_after_position,
                          'function_call': "lfs[" + str(lf.loss_functions_id) + "]" + wrap_function_parameters(lf.parameter_list),
@@ -213,11 +213,16 @@ def load_data(variants):
     return names, data
 
 
-def load_restrictions(variant_id):
-    restrictions_ids = (restr.restrictions_id for restr in
-                        VariantsRestrictions.query.filter(VariantsRestrictions.variants_id == variant_id).all())
+def load_restrictions(restr):
     return [{'restriction': wrap_restriction_parameters(r.restriction), 'eval_after_position': r.eval_after_position, 'description': r.description}
-            for r in Restrictions.query.filter(Restrictions.id.in_(restrictions_ids)).all()]
+            for r in restr]
+
+
+# def load_restrictions(variant_id):
+#     restrictions_ids = (restr.restrictions_id for restr in
+#                         VariantsRestrictions.query.filter(VariantsRestrictions.variants_id == variant_id).all())
+#     return [{'restriction': wrap_restriction_parameters(r.restriction), 'eval_after_position': r.eval_after_position, 'description': r.description}
+#             for r in Restrictions.query.filter(Restrictions.id.in_(restrictions_ids)).all()]
 
 
 def get_component_names_by_indices(ids, comps, names):

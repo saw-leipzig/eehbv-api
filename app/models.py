@@ -34,6 +34,9 @@ class ProcessSources(db.Model, Serializable):       # this table is only for tes
 class Processes(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['processes']
     process_parameters = db.relationship('ProcessParameters', lazy=False, cascade="all, delete-orphan")
+    process_solvers = db.relationship('ProblemType', lazy=False, cascade="all, delete-orphan")
+    loss_functions = db.relationship('LossFunctions', lazy=False, cascade="all, delete-orphan")
+    info_texts = db.relationship('InfoTexts', lazy=False, cascade="all, delete-orphan")
 
 
 class ProblemType(db.Model, Serializable):
@@ -48,6 +51,7 @@ class Variants(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['variants']
     variant_components = db.relationship('VariantComponents', lazy=False, cascade="all, delete-orphan")
     variants_loss_functions = db.relationship('VariantsLossFunctions', lazy=False, cascade="all, delete-orphan")
+    restrictions = db.relationship('Restrictions', lazy=False, cascade="all, delete-orphan")
 
 
 class VariantComponents(db.Model, Serializable):
@@ -64,10 +68,6 @@ class LossFunctions(db.Model, Serializable):
 
 class Restrictions(db.Model, Serializable):
     __table__ = db.Model.metadata.tables['restrictions']
-
-
-class VariantsRestrictions(db.Model, Serializable):
-    __table__ = db.Model.metadata.tables['variants_restrictions']
 
 
 class VariantSelection(db.Model, Serializable):
