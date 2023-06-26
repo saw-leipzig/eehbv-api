@@ -37,6 +37,7 @@ class Processes(db.Model, Serializable):
     process_solvers = db.relationship('ProblemType', lazy=False, cascade="all, delete-orphan")
     loss_functions = db.relationship('LossFunctions', lazy=False, cascade="all, delete-orphan")
     info_texts = db.relationship('InfoTexts', lazy=False, cascade="all, delete-orphan")
+    variant_selection = db.relationship('VariantSelection', lazy=False, cascade="all, delete-orphan")
 
 
 class ProblemType(db.Model, Serializable):

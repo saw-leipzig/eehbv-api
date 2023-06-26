@@ -218,13 +218,6 @@ def load_restrictions(restr):
             for r in restr]
 
 
-# def load_restrictions(variant_id):
-#     restrictions_ids = (restr.restrictions_id for restr in
-#                         VariantsRestrictions.query.filter(VariantsRestrictions.variants_id == variant_id).all())
-#     return [{'restriction': wrap_restriction_parameters(r.restriction), 'eval_after_position': r.eval_after_position, 'description': r.description}
-#             for r in Restrictions.query.filter(Restrictions.id.in_(restrictions_ids)).all()]
-
-
 def get_component_names_by_indices(ids, comps, names):
     return {comp['description']: names[comp['component_api_name']][ids[comp['variable_name']]] for comp in comps}
 
@@ -234,11 +227,6 @@ def wrap_function_parameters(sig):
                             else (("p['" + p[0] + "']") if p[0].startswith("p_")
                                   else (("combinations['" + p[0] + "'][" + p[1]) if p[0].startswith("c_") else p[0]))
                             for p in [s.split("[") for s in sig[1:-1].split(", ")]]) + ")"
-
-
-# def wrap_restriction_parameters(restr):
-#     return " ".join([("l['" + r + "']") if r.startswith("l_") else (("p['" + r + "']") if r.startswith("p_") else r)
-#                      for r in restr.split(" ")])
 
 
 def wrap_restriction_parameters(restr):

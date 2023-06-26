@@ -25,6 +25,8 @@ def create_app(config_name):
         ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
     db.metadata.tables['process_solvers'].append_constraint(
         ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
+    db.metadata.tables['variant_selection'].append_constraint(
+        ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
     db.metadata.tables['info_texts'].append_constraint(
         ForeignKeyConstraint(['processes_id'], ['processes.id'], onupdate='CASCADE', ondelete='CASCADE'))
     db.metadata.tables['loss_functions'].append_constraint(

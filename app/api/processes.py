@@ -8,7 +8,7 @@ from app import db
 from ..decorators import permission_required
 
 
-@api.route('/procceses/<int:cId>', methods=['DELETE'])
+@api.route('/processes/<int:cId>', methods=['DELETE'])
 @permission_required(Permission.OPT)
 def delete_process(cId):
     proc = get_process_raw(cId)
@@ -35,7 +35,8 @@ def delete_process(cId):
 @api.route('/processes')
 def get_processes():
     processes = Processes.query.all()
-    return jsonify({'processes': [{**process.as_dict(), 'parameters': [p.as_dict() for p in process.process_parameters]} for process in processes]})
+    return jsonify({'processes': [{**process.as_dict(),
+                                   'parameters': [p.as_dict() for p in process.process_parameters]} for process in processes]})
 
 
 @api.route('/processes/<int:cId>')
@@ -120,6 +121,8 @@ def get_process_details(cId):
                         {'name': v.name,
                          'variant_components': [vc.as_dict() for vc in v.variant_components],
                          'variant_functions': [{**vlf.as_dict(),
+                                                'loss_function_description': next(lf.description for lf in process.loss_functions
+                                                                                  if lf.id == vlf.loss_functions_id),
                                                 'parameter_list_model': functions_model(vlf.parameter_list[1:-1].split(", "),
                                                                                         v.variant_components,
                                                                                         process.process_parameters,
@@ -135,7 +138,7 @@ def get_process_details(cId):
                                                   for vr in v.restrictions]}
                         for v in variants
                     ],
-                    'variant_selection': {},
+                    'variant_selection': json.loads(process.variant_selection[0].selection),
                     'solver': [s.as_dict() for s in process.process_solvers],
                     'infoTexts': [it.as_dict() for it in process.info_texts]})
 
