@@ -16,7 +16,6 @@ RESULT = '/result.json'
 REQUEST = '/problem.json'
 
 problem_dict = ProblemWrapper()
-# targetFunctions = TargetFuncWrapper()
 loss_function_dict = LossFuncWrapper()
 
 
@@ -100,7 +99,7 @@ def persist_variant_json(date_time, res, finished, status_file=None):
     finished_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     print(finished_time)
     if req is None:
-        pass    # ToDo: logging/error message
+        pass  # ToDo: logging/error message
     else:
         if req.status == 0:
             req.result = json.dumps({'status': '...', 'result': [res]})
@@ -111,14 +110,15 @@ def persist_variant_json(date_time, res, finished, status_file=None):
         db.session.commit()
 
 
-def persist_variant_opts(variant_name, opts, cost_opts, failed_restriction, info, date_time, finished):
-    res_dict = wrap_result(variant_name, opts, cost_opts, failed_restriction, info)
+def persist_variant_opts(variant, opts, cost_opts, failed_restriction, info, date_time, finished):
+    res_dict = wrap_result(variant, opts, cost_opts, failed_restriction, info)
     persist_variant_json(date_time, res_dict, finished)
 
 
-def wrap_result(variant_name, opts, cost_opts, failed_restriction, info):
+def wrap_result(variant, opts, cost_opts, failed_restriction, info):
     return {
-        'variant': variant_name,
+        'variant': variant.name,
+        'variant_id': variant.id,
         'opts': opts,
         'cost_opts': cost_opts,
         'deepest_failed_restriction': failed_restriction,
@@ -143,7 +143,8 @@ def load_data_and_solve(c_id, process, model, date_time):
         if problem is None:
             raise Exception('Problem not defined')
         variants = Variants.query. \
-            filter(Variants.processes_id == c_id, Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
+            filter(Variants.processes_id == c_id,
+                   Variants.id.in_((v['id'] for v in model['variants_conditions']))).all()
         names, data = load_data(variants)
         component_keys = ['component_api_name', 'variable_name', 'description']
         counter = 0
@@ -152,21 +153,13 @@ def load_data_and_solve(c_id, process, model, date_time):
             loss_functions = loss_function_dict.get_functions(process, v)
             print(loss_functions)
             restrictions = load_restrictions(v.restrictions)
-            lf_model = [{'description': lf.description,
-                         'eval_after_position': lf.eval_after_position,
-                         'function_call': "lfs[" + str(lf.loss_functions_id) + "]" + wrap_function_parameters(lf.parameter_list),
-                         'position': lf.position,
-                         'variable_name': lf.variable_name,
-                         'aggregate': lf.aggregate,
-                         'is_loss': lf.is_loss}
-                        for lf in
-                        sorted(v.variants_loss_functions, key=lambda ll: ll.position)]
+            lf_model = build_loss_function_model(v)
             variant_model = {'process_profiles': model['process_profiles'],
                              'general_parameters': model['general_parameters'],
                              'result_settings': model['result_settings'],
                              'conditions': [wrap_restriction_parameters(cond) for cond in
                                             next(vv for vv in model['variants_conditions']
-                                            if vv['id'] == v.id)['conditions']],
+                                                 if vv['id'] == v.id)['conditions']],
                              'restrictions': restrictions,
                              'components': [{key: c.as_dict()[key] for key in component_keys} for c in
                                             sorted(v.variant_components, key=lambda cc: cc.position)],
@@ -174,12 +167,13 @@ def load_data_and_solve(c_id, process, model, date_time):
                              }
             variant_comp_types = set(map(lambda c: c.component_api_name, v.variant_components))
             if problem.use_solver:
-                opts, cost_opts, failed_restriction, info =\
+                opts, cost_opts, failed_restriction, info = \
                     problem_dict.call_solver(c_id, problem.code, process, loss_functions, variant_model,
                                              {key: data[key] for key in variant_comp_types})  # pass only necessary data
             else:
-                opts, cost_opts, failed_restriction, info =\
-                    solver.call_solver(loss_functions, variant_model, {key: data[key] for key in variant_comp_types})  # pass only necessary data
+                opts, cost_opts, failed_restriction, info = \
+                    solver.call_solver(loss_functions, variant_model,
+                                       {key: data[key] for key in variant_comp_types})  # pass only necessary data
             # extract model/manufacturer from index
             for opt in opts:
                 opt['indices'] = get_component_names_by_indices(opt['indices'], variant_model['components'], names)
@@ -190,7 +184,7 @@ def load_data_and_solve(c_id, process, model, date_time):
                 print(opts)
             else:
                 print(failed_restriction['restriction'])
-            persist_variant_opts(v.name, opts, cost_opts, failed_restriction, info, date_time, counter == len(variants))
+            persist_variant_opts(v, opts, cost_opts, failed_restriction, info, date_time, counter == len(variants))
     except Exception as e:
         print(e.args)
         req = Requests.query.filter(Requests.timestamp == date_time).first()
@@ -207,14 +201,27 @@ def load_data(variants):
             comp_name = c.component_api_name
             if comp_name not in names:
                 comps = components[comp_name].query.all()
-                names[comp_name] = [{'name': cc.name, 'manufacturer': cc.manufacturer} for cc in comps]
+                names[comp_name] = [{'id': cc.id, 'name': cc.name, 'manufacturer': cc.manufacturer} for cc in comps]
                 keys = [k for k in comps[0].as_dict().keys() if k not in ['id', 'name', 'manufacturer']]
                 data[comp_name] = [{key: cc.as_dict()[key] for key in keys} for cc in comps]
     return names, data
 
 
+def build_loss_function_model(variant):
+    return [{'description': lf.description,
+             'eval_after_position': lf.eval_after_position,
+             'function_call': "lfs[" + str(lf.loss_functions_id) + "]" + wrap_function_parameters(lf.parameter_list),
+             'position': lf.position,
+             'variable_name': lf.variable_name,
+             'aggregate': lf.aggregate,
+             'is_loss': lf.is_loss}
+            for lf in
+            sorted(variant.variants_loss_functions, key=lambda ll: ll.position)]
+
+
 def load_restrictions(restr):
-    return [{'restriction': wrap_restriction_parameters(r.restriction), 'eval_after_position': r.eval_after_position, 'description': r.description}
+    return [{'restriction': wrap_restriction_parameters(r.restriction), 'eval_after_position': r.eval_after_position,
+             'description': r.description}
             for r in restr]
 
 

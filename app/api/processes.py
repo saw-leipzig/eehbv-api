@@ -320,6 +320,14 @@ def get_variants(cId):
                       for variant in variants]})
 
 
+@api.route('/variants/<int:cId>')
+def get_variant(cId):
+    variant = Variants.query.filter_by(id=cId).first()
+    return jsonify(
+        {**variant.as_dict(),
+         'components': [c.as_dict() for c in variant.variant_components],
+         'loss_functions': [lf.as_dict() for lf in variant.variants_loss_functions]})
+
 
 @api.route('/processes/<int:cId>/info_texts')
 def get_info_texts(cId):

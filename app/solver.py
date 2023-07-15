@@ -85,8 +85,9 @@ class IndependentAggregatesSolver:
                     try:
                         exec(lf['variable_name'] + ' = ' + lf['function_call'])
                     except Exception as ex:
-                        raise Exception('Error in evaluating function {fd} - {fc}, error: {err}'.
-                                        format(fd=lf['description'], fc=lf['function_call'], err=str(ex)))
+                        passed_vars = passed_parameters(lf['function_call'], False, p, l, combinations)
+                        raise Exception('Error in evaluating function {fd} - "{fc}"; passed parameters: {pp}; error: {err}'.
+                                        format(fd=lf['description'], fc=lf['function_call'], pp=passed_vars, err=str(ex)))
                     # ToDo: view group
                     # pack current loss for deeper levels
                     exec('self.cl["' + lf['variable_name'] + '"].append(' + lf['variable_name'] + ')')
@@ -110,8 +111,9 @@ class IndependentAggregatesSolver:
                 except NameError as ex:  # conditions with missing vars have to be evaluated at a deeper level
                     pass    # print('Condition parameter not defined: ' + ex.args[0])
                 except Exception as ex:
-                    raise Exception('Error in evaluating condition "{fd}", error: {err}'.
-                                    format(fd=cond, err=str(ex)))
+                    passed_vars = passed_parameters(cond, True, p, l, combinations)
+                    raise Exception('Error in evaluating condition "{fd}"; parameters: {pp}; error: {err}'.
+                                    format(fd=cond, pp=passed_vars, err=str(ex)))
             # check implicit conditions
             for restr in self.model['restrictions']:
                 if depth == restr['eval_after_position']:
@@ -125,8 +127,9 @@ class IndependentAggregatesSolver:
                     except NameError as ex:
                         print('Condition parameter not defined: ' + ex.args[0])
                     except Exception as ex:
-                        raise Exception('Error in evaluating restriction {fd} - "{fc}", error: {err}'.
-                                        format(fd=restr['description'], fc=restr['restriction'], err=str(ex)))
+                        passed_vars = passed_parameters(restr['restriction'], True, p, l, combinations)
+                        raise Exception('Error in evaluating restriction {fd} - "{fc}"; parameters: {pp}; error: {err}'.
+                                        format(fd=restr['description'], fc=restr['restriction'], pp=passed_vars, err=str(ex)))
         return True
 
     def summarize_and_check_results(self, combination):
