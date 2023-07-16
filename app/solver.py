@@ -428,7 +428,7 @@ def passed_parameters(call, cond, p, l, combinations):
             par = part[3:-2] + "=" + str(eval(part))
             passed.append(par)
         elif part.startswith("combinations["):
-            p_par = part[14:].split('"]')
-            par = p_par[0] + p_par[1] + "=" + str(eval(part))
+            p_par = part[14:].split("']")
+            par = p_par[0] + p_par[1] + "]=" + str(eval(part))
             passed.append(par)
     return ", ".join(passed)
