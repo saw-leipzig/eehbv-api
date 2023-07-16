@@ -1,16 +1,12 @@
 import json
-import threading
-from datetime import datetime
 from flask import request, current_app, Response, jsonify
 
-from ..decimalencoder import DecimalEncoder
 from app import db, solver
-from ..decorators import permission_required
-from ..models import ProblemWrapper, LossFuncWrapper, Processes, Variants, components, \
-    Requests, Restrictions, TARGET_FUNC, Permission, ProblemType
-from .problems import load_restrictions, wrap_function_parameters, build_loss_function_model
+from ..models import ProblemWrapper, LossFuncWrapper, Processes, Variants, components
+from .problems import load_restrictions, build_loss_function_model
 from . import api
 from ..solver import passed_parameters
+from math import *  # for exec calls of conditions
 
 problem_dict = ProblemWrapper()
 loss_function_dict = LossFuncWrapper()
@@ -18,22 +14,21 @@ loss_function_dict = LossFuncWrapper()
 
 @api.route('/machines/<int:c_id>/explore', methods=['POST'])
 def explore_machine(c_id):
-    model = request.get_json()
+    settings = request.get_json()
     variant = Variants.query.filter_by(id=c_id).first()
     process = Processes.query.filter_by(id=variant.processes_id).first()
-    component_keys = ['component_api_name', 'variable_name', 'description']
-    machine = load_data(variant, model['machine'])
+    machine = load_data(variant, settings['machine'])
     loss_functions = loss_function_dict.get_functions(process.api_name, variant)
+    variant_model = load_variant_model(variant)
+    res = compute_power(loss_functions, variant_model, settings['parameters'], machine)
+    return jsonify(res)
+
+
+def load_variant_model(variant):
     restrictions = load_restrictions(variant.restrictions)
     lf_model = build_loss_function_model(variant)
-    variant_model = {'parameters': model['parameters'],
-                     'restrictions': restrictions,
-                     'components': [{key: c.as_dict()[key] for key in component_keys} for c in
-                                    sorted(variant.variant_components, key=lambda cc: cc.position)],
-                     'loss_functions': lf_model
-                     }
-    res = compute_power(loss_functions, variant_model, model['parameters'], machine)
-    return jsonify(res)
+    return {'restrictions': restrictions,
+            'loss_functions': lf_model}
 
 
 def load_data(variant, machine):
@@ -69,7 +64,7 @@ class MachinePowerComputation:
         self.machine = machine
 
     def compute(self):
-        for depth in range(len(self.model['components'])):
+        for depth in range(len(self.machine)):
             cd, msg = self.conditions_satisfied(self.machine, depth)
             if cd:
                 ul, msg = self.update_losses(self.machine, depth)
@@ -125,3 +120,67 @@ class MachinePowerComputation:
 
     def function_is_loss(self, var):
         return all(lf['is_loss'] for lf in self.model['loss_functions'] if lf['variable_name'] == var)
+
+
+@api.route('/machines/<int:c_id>/optimize', methods=['POST'])
+def optimize_machine_parameters(c_id):
+    settings = request.get_json()
+    variant = Variants.query.filter_by(id=c_id).first()
+    process = Processes.query.filter_by(id=variant.processes_id).first()
+    machine = load_data(variant, settings['machine'])
+    loss_functions = loss_function_dict.get_functions(process.api_name, variant)
+    variant_model = load_variant_model(variant)
+    res = compute_power(loss_functions, variant_model, settings['parameters'], machine)
+    return jsonify(res)
+
+
+def optimize_parameters(loss_func, variant_model, parameters, machine):
+    n_pop = 100     # square number
+    n_fittest = sqrt(n_pop)
+    n_generations = 100
+    population = generate_population(n_pop, parameters)
+    for gen in range(n_generations):
+        fitness = compute_population_fitness(loss_func, variant_model, population, machine)
+        population = sort_population(population, fitness)
+        if gen < n_generations - 1:
+            population = regenerate_population(population, n_fittest, parameters, gen)
+    return population[0]
+
+
+def generate_population(n, params):
+    return [generate_individual(params) for i in range(n)]
+
+
+def generate_individual(params):
+    return {}       # ToDo:
+
+
+def compute_population_fitness(loss_func, variant_model, population, machine):
+    fitness = []
+    for individual in population:
+        mpc = MachinePowerComputation(loss_func, variant_model, individual, machine)
+        i_fitness = mpc.compute()
+        fitness.append(i_fitness.total if i_fitness.success else None)
+    return fitness
+
+
+def regenerate_population(population, n, parameters, gen):
+    ng = []
+    for x in range(n):
+        for y in range(n):
+            if x < n - 1 or y < n - 1:
+                ni = cross_over(population[x], population[y])
+                ng.append(mutate(ni, parameters, gen))
+    return ng
+
+
+def sort_population(population, fitness):
+    return population   # ToDo
+
+
+def cross_over(ind_1, ind_2):
+    return ind_1        # ToDo
+
+
+def mutate(new_individual, parameters, gen):
+    return new_individual       # ToDo
