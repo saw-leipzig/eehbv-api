@@ -1,4 +1,7 @@
 import json
+from math import *  # for exec calls of conditions
+from random import random, gauss, uniform, randint, triangular
+
 from flask import request, current_app, Response, jsonify
 
 from app import db, solver
@@ -6,7 +9,6 @@ from ..models import ProblemWrapper, LossFuncWrapper, Processes, Variants, compo
 from .problems import load_restrictions, build_loss_function_model
 from . import api
 from ..solver import passed_parameters
-from math import *  # for exec calls of conditions
 
 problem_dict = ProblemWrapper()
 loss_function_dict = LossFuncWrapper()
@@ -130,21 +132,25 @@ def optimize_machine_parameters(c_id):
     machine = load_data(variant, settings['machine'])
     loss_functions = loss_function_dict.get_functions(process.api_name, variant)
     variant_model = load_variant_model(variant)
-    res = compute_power(loss_functions, variant_model, settings['parameters'], machine)
+    res = optimize_parameters(loss_functions, variant_model, settings['parameters'], machine)
     return jsonify(res)
 
 
 def optimize_parameters(loss_func, variant_model, parameters, machine):
-    n_pop = 100     # square number
-    n_fittest = sqrt(n_pop)
-    n_generations = 100
+    n_fittest = 20
+    n_pop = n_fittest * n_fittest
+    n_generations = 20
+    history = []
     population = generate_population(n_pop, parameters)
     for gen in range(n_generations):
-        fitness = compute_population_fitness(loss_func, variant_model, population, machine)
-        population = sort_population(population, fitness)
+        fitness, msg = compute_population_fitness(loss_func, variant_model, population, machine)
+        best_value, population = sort_and_clean_population(population, fitness, n_pop)
+        history.append(best_value)
+        if best_value == float('inf'):
+            return {'parameters': population[0], 'history': history, 'msg': msg}
         if gen < n_generations - 1:
-            population = regenerate_population(population, n_fittest, parameters, gen)
-    return population[0]
+            population = regenerate_population(population, n_fittest, parameters, gen, n_generations)
+    return {'parameters': population[0], 'history': history, 'msg': ''}
 
 
 def generate_population(n, params):
@@ -152,35 +158,57 @@ def generate_population(n, params):
 
 
 def generate_individual(params):
-    return {}       # ToDo:
+    return {k: ((randint(params[k]['min'], params[k]['max']) if params[k]['discrete']
+                 else uniform(params[k]['min'], params[k]['max']))
+                if params[k]['vary']
+                else params[k]['min'])
+            for k in params.keys()}
 
 
 def compute_population_fitness(loss_func, variant_model, population, machine):
     fitness = []
+    msg = ''
     for individual in population:
         mpc = MachinePowerComputation(loss_func, variant_model, individual, machine)
         i_fitness = mpc.compute()
-        fitness.append(i_fitness.total if i_fitness.success else None)
-    return fitness
+        fitness.append(i_fitness['total'] if i_fitness['success'] else float('inf'))
+        if not i_fitness['success']:
+            msg = i_fitness['msg']
+    return fitness, msg
 
 
-def regenerate_population(population, n, parameters, gen):
+def regenerate_population(population, n, parameters, gen, n_gen):
     ng = []
     for x in range(n):
         for y in range(n):
             if x < n - 1 or y < n - 1:
                 ni = cross_over(population[x], population[y])
-                ng.append(mutate(ni, parameters, gen))
+                ng.append(mutate(ni, parameters, gen, n_gen))
+    ng.append(population[0])
     return ng
 
 
-def sort_population(population, fitness):
-    return population   # ToDo
+def sort_and_clean_population(population, fitness, n):
+    sorted_pop = sorted(zip(population, fitness), key=lambda pair: pair[1])
+    cleaned_pop = [i for i, k in sorted_pop if k < float('inf')]
+    print(len(cleaned_pop))
+    cleaned_pop = cleaned_pop + cleaned_pop[:n-len(cleaned_pop)]    # fill failed parameter sets with best
+    return sorted_pop[0][1], cleaned_pop + cleaned_pop + cleaned_pop + cleaned_pop    # make sure that remaining population is large enough
 
 
 def cross_over(ind_1, ind_2):
-    return ind_1        # ToDo
+    return {key: (ind_1[key] if random() < 0.5 else ind_2[key]) for key in ind_1.keys()}
 
 
-def mutate(new_individual, parameters, gen):
-    return new_individual       # ToDo
+def mutate(ni, params, gen, n_gen):
+    mutated = {}
+    for key in ni.keys():
+        if params[key]['vary']:
+            mutation = round(triangular(ni[key] - (ni[key] - params[key]['max']) * exp(-25 * gen / n_gen),
+                                        ni[key] + (params[key]['max'] - ni[key]) * exp(-25 * gen / n_gen), ni[key]))\
+                if params[key]['discrete']\
+                else gauss(ni[key], (params[key]['max'] - params[key]['min']) / 8. * exp(-25 * gen / n_gen))
+            mutated[key] = min(max(params[key]['min'], mutation), params[key]['max'])
+        else:
+            mutated[key] = ni[key]
+    return mutated
