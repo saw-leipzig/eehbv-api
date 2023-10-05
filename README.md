@@ -6,7 +6,11 @@
 power grid), government-funded by the German Federal Ministry of Food and 
 Agriculture.
 
-This repository contains the backend for EEHBV, written in Python, to be used 
+The software supports an optimization process of the energy efficiency of custom
+machines. Further information can be found in the accompanying manual.
+
+This repository contains the backend for EEHBV, written in Python,
+developed and tested wit Python 3.9, to be used 
 in combination with the frontend in the repository **eehbv-frontend**.
 
 ## Build docker image
@@ -47,3 +51,6 @@ variables `FLASK_APP=eehbv.py` and `FLASK_CONFIG=development` and run
 <pre><code>
 flask run
 </code></pre>
+
+## License
+SQLAlchemy is distributed under the [MIT license](https://opensource.org/license/mit/)
