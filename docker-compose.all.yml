@@ -23,7 +23,7 @@ services:
       PMA_HOST: mariadb
       
   api:
-    image: saw-leipzig/eehbv-api
+    image: sawleipzig/eehbv-api
     ports:
       - '5000:5000'
     networks:
@@ -33,7 +33,7 @@ services:
     env_file: .env
       
   frontend:
-    image: saw-leipzig/eehbv-frontend
+    image: sawleipzig/eehbv-frontend
     ports:
       - '80:8080'
     networks:
